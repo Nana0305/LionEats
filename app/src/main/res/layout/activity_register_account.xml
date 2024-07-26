@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".LoginActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:gravity="center"
+            android:src="@drawable/logo" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="5dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Name"
+                android:textSize="15sp"/>
+            <EditText
+                android:id="@+id/nameText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:hint="Enter name"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="5dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Username"
+                android:textSize="15sp"/>
+            <EditText
+                android:id="@+id/usernameText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:hint="Enter username"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="5dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Password"
+                android:textSize="15sp"/>
+            <EditText
+                android:id="@+id/passwordText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:hint="Enter password"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="5dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Email"
+                android:textSize="15sp"/>
+            <EditText
+                android:id="@+id/emailText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:hint="Enter email"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_marginTop="5dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Age "
+                android:textSize="15sp"/>
+            <RadioGroup
+                android:id="@+id/ageOptions"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:orientation="horizontal">
+                <RadioButton
+                    android:id="@+id/ageOption1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="<21"/>
+                <RadioButton
+                    android:id="@+id/ageOption2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="21~35"/>
+                <RadioButton
+                    android:id="@+id/ageOption3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="35~60"/>
+                <RadioButton
+                    android:id="@+id/ageOption4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=">60"/>
+            </RadioGroup>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_marginTop="5dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Gender "
+                android:textSize="15sp"/>
+            <RadioGroup
+                android:id="@+id/genderOptions"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:orientation="horizontal">
+                <RadioButton
+                    android:id="@+id/genderOption1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Male "/>
+                <RadioButton
+                    android:id="@+id/genderOption2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Female"/>
+            </RadioGroup>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="5dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Country"
+                android:textSize="15sp"/>
+            <EditText
+                android:id="@+id/countryText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:hint="Enter country"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="5dp">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Dish Preferences:"
+                android:textSize="15sp"/>
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="5"
+                android:rowCount="1"
+                android:alignmentMode="alignMargins"
+                android:columnOrderPreserved="false">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="2dp">
+                    <ImageView
+                        android:id="@+id/imageOption1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="50dp"
+                        android:src="@drawable/chickenrice"
+                        android:contentDescription="Chicken rice"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="Chicken rice"/>
+                </LinearLayout>
+
+                <!-- Second Image with Name -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="2dp">
+                    <ImageView
+                        android:id="@+id/imageOption2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="50dp"
+                        android:src="@drawable/bkt"
+                        android:contentDescription="Bak kut teh"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="Bak kut teh"/>
+                </LinearLayout>
+
+                <!-- Third Image with Name -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="2dp">
+                    <ImageView
+                        android:id="@+id/imageOption3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="50dp"
+                        android:src="@drawable/ckt"
+                        android:contentDescription="Char kway teow"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="Char kway teow" />
+                </LinearLayout>
+
+                <!-- Fourth Image with Name -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="2dp">
+                    <ImageView
+                        android:id="@+id/imageOption4"
+                        android:layout_width="wrap_content"
+                        android:layout_height="50dp"
+                        android:src="@drawable/kayatoast"
+                        android:contentDescription="Kaya toast"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="Kaya toast"/>
+                </LinearLayout>
+
+                <!-- Fifth Image with Name -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="2dp">
+                    <ImageView
+                        android:id="@+id/imageOption5"
+                        android:layout_width="wrap_content"
+                        android:layout_height="50dp"
+                        android:src="@drawable/nasilemak"
+                        android:contentDescription="Nasi lemak"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="Nasi lemak"/>
+                </LinearLayout>
+            </GridLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_marginTop="5dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Can you take the heat? "
+                android:textSize="15sp"/>
+            <RadioGroup
+                android:id="@+id/spicyOptions"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:orientation="horizontal">
+                <RadioButton
+                    android:id="@+id/spicyOption1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Of course"/>
+                <RadioButton
+                    android:id="@+id/spicyOption2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Not so much"/>
+            </RadioGroup>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_marginTop="5dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Budget "
+                android:textSize="15sp"/>
+            <RadioGroup
+                android:id="@+id/budgetOptions"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:orientation="horizontal">
+                <RadioButton
+                    android:id="@+id/budgetOption1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Low"/>
+                <RadioButton
+                    android:id="@+id/budgetOption2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Medium"/>
+                <RadioButton
+                    android:id="@+id/budgetOption3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="High"/>
+            </RadioGroup>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/registerBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="10dp"
+            android:text="Register"
+            android:textSize="18sp"/>
+    </LinearLayout>
+
+</ScrollView>
+

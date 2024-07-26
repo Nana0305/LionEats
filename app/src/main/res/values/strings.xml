@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">LionEats</string>
+    <string-array name="spinnerDish_items">
+        <item>Hainanese chicken rice</item>
+        <item>Chilli crab</item>
+        <item>Laksa</item>
+        <item>Char kway teow</item>
+        <item>Fish head curry</item>
+        <item>Bak kut teh</item>
+        <item>Kaya toast</item>
+        <item>Nasi lemak</item>
+        <item>Roti prata</item>
+        <item>Chai tow kway</item>
+    </string-array>
+    <string-array name="spinnerLocation_items">
+        <item>Orchard</item>
+        <item>Sentosa</item>
+        <item>East Coast</item>
+    </string-array>
+    <string-array name="spinnerBudget_items">
+        <item>Budget</item>
+        <item>Moderate</item>
+        <item>Fancy</item>
+    </string-array>
+    <string-array name="spinnerTiming_items">
+        <item>Morning</item>
+        <item>Afternoon</item>
+        <item>Evening</item>
+    </string-array>
+    <string-array name="spinnerAllergen_items">
+        <item>No peanuts</item>
+        <item>No lard</item>
+        <item>Non spicy</item>
+    </string-array>
+</resources>
