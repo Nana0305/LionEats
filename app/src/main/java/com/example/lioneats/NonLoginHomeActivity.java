@@ -1,14 +1,18 @@
 package com.example.lioneats;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -26,7 +30,8 @@ public class NonLoginHomeActivity extends AppCompatActivity implements ImageAdap
 	private Handler handler;
 	private Runnable runnable;
 	private int currentItem = 0;
-	private Button loginBtn;
+	private TextView loginBtn;
+	private ImageButton cameraBtn;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +44,13 @@ public class NonLoginHomeActivity extends AppCompatActivity implements ImageAdap
 			public void onClick(View v) {
 				Intent intent = new Intent (NonLoginHomeActivity.this, LoginActivity.class);
 				startActivity(intent);
+			}
+		});
+		cameraBtn = findViewById(R.id.cameraBtn);
+		cameraBtn.setOnClickListener(new View.OnClickListener(){
+			@Override
+			public void onClick(View v){
+				showPopup();
 			}
 		});
 
@@ -63,6 +75,27 @@ public class NonLoginHomeActivity extends AppCompatActivity implements ImageAdap
 		if (listView != null) {
 			listView.setAdapter(new MyCustomAdapter(this, ranks, titles, addresses, ratings));
 		}
+	}
+
+	private void showPopup() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("Login for dish classifier function")
+				.setMessage("No Account yet? Register Now! ")
+				.setPositiveButton("Login", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						Intent intent = new Intent(NonLoginHomeActivity.this, LoginActivity.class);
+						startActivity(intent);
+					}
+				})
+				.setNegativeButton("Register Account", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						Intent intent = new Intent(NonLoginHomeActivity.this, RegisterAccountActivity.class);
+						startActivity(intent);
+					}
+				});
+		builder.create().show();
 	}
 
 	@Override

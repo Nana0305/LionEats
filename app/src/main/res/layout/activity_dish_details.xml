@@ -8,32 +8,10 @@
     android:orientation="vertical"
     android:layout_margin="20dp"
     tools:context=".DishDetailsActivity">
-    <LinearLayout
+    <include
+        layout="@layout/header_row"
         android:layout_width="match_parent"
-        android:layout_height="70dp"
-        android:orientation="horizontal">
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:layout_gravity="center"
-            android:text="Username"
-            android:textSize="20sp" />
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:src="@drawable/logo" />
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:src="@drawable/camera_logo"
-            android:padding="5dp"/>
-    </LinearLayout>
+        android:layout_height="100dp"/>
     <ImageView
         android:id="@+id/dishImage"
         android:layout_width="match_parent"

@@ -1,6 +1,10 @@
 package com.example.lioneats;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,12 +17,25 @@ public class ImageResultActivity extends AppCompatActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		EdgeToEdge.enable(this);
 		setContentView(R.layout.activity_image_result);
-		ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-			Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-			v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-			return insets;
+
+		// Header row elements
+		TextView userNameText = findViewById(R.id.usernameText);
+		TextView logoutBtn = findViewById(R.id.logoutBtn);
+		ImageButton cameraBtn = findViewById(R.id.cameraBtn);
+		String username = getIntent().getStringExtra("USERNAME");
+		userNameText.setText(username);
+		logoutBtn.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				//logout
+			}
+		});
+		cameraBtn.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				//image result again
+			}
 		});
 	}
 }

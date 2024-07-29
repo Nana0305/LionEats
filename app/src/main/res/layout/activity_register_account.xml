@@ -4,17 +4,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".LoginActivity">
+    android:layout_margin="20dp"
+    tools:context=".RegisterAccountActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
-
+        android:orientation="vertical">
         <ImageView
             android:layout_width="match_parent"
-            android:layout_height="80dp"
+            android:layout_height="100dp"
             android:gravity="center"
             android:src="@drawable/logo" />
 
@@ -28,13 +27,15 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Name"
-                android:textSize="15sp"/>
+                android:textSize="18sp"
+                android:textStyle="bold"/>
             <EditText
                 android:id="@+id/nameText"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
-                android:layout_weight="2"
-                android:hint="Enter name"/>
+                android:layout_weight="3"
+                android:hint="Enter name"
+                android:textSize="15sp"/>
         </LinearLayout>
 
         <LinearLayout
@@ -47,13 +48,15 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Username"
-                android:textSize="15sp"/>
+                android:textSize="18sp"
+                android:textStyle="bold"/>
             <EditText
                 android:id="@+id/usernameText"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
-                android:layout_weight="2"
-                android:hint="Enter username"/>
+                android:layout_weight="3"
+                android:hint="Enter username"
+                android:textSize="15sp"/>
         </LinearLayout>
 
         <LinearLayout
@@ -66,13 +69,16 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Password"
-                android:textSize="15sp"/>
+                android:textSize="18sp"
+                android:textStyle="bold"/>
             <EditText
                 android:id="@+id/passwordText"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
-                android:layout_weight="2"
-                android:hint="Enter password"/>
+                android:layout_weight="3"
+                android:hint="Enter password"
+                android:textSize="15sp"
+                android:inputType="textPassword"/>
         </LinearLayout>
 
         <LinearLayout
@@ -85,13 +91,16 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Email"
-                android:textSize="15sp"/>
+                android:textSize="18sp"
+                android:textStyle="bold"/>
             <EditText
                 android:id="@+id/emailText"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
-                android:layout_weight="2"
-                android:hint="Enter email"/>
+                android:layout_weight="3"
+                android:hint="Enter email"
+                android:textSize="15sp"
+                android:inputType="textEmailAddress"/>
         </LinearLayout>
 
         <LinearLayout
@@ -105,33 +114,38 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Age "
-                android:textSize="15sp"/>
+                android:textSize="18sp"
+                android:textStyle="bold"/>
             <RadioGroup
                 android:id="@+id/ageOptions"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="2"
+                android:layout_weight="3"
                 android:orientation="horizontal">
                 <RadioButton
                     android:id="@+id/ageOption1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="<21"/>
+                    android:text="&lt;21"
+                    android:textSize="15sp"/>
                 <RadioButton
                     android:id="@+id/ageOption2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="21~35"/>
+                    android:text="21~35"
+                    android:textSize="15sp"/>
                 <RadioButton
                     android:id="@+id/ageOption3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="35~60"/>
+                    android:text="35~60"
+                    android:textSize="15sp"/>
                 <RadioButton
                     android:id="@+id/ageOption4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=">60"/>
+                    android:text="&gt;60"
+                    android:textSize="15sp"/>
             </RadioGroup>
         </LinearLayout>
 
@@ -146,23 +160,26 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Gender "
-                android:textSize="15sp"/>
+                android:textSize="18sp"
+                android:textStyle="bold"/>
             <RadioGroup
                 android:id="@+id/genderOptions"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="2"
+                android:layout_weight="3"
                 android:orientation="horizontal">
                 <RadioButton
                     android:id="@+id/genderOption1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Male "/>
+                    android:text="Male "
+                    android:textSize="15sp"/>
                 <RadioButton
                     android:id="@+id/genderOption2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Female"/>
+                    android:text="Female"
+                    android:textSize="15sp"/>
             </RadioGroup>
         </LinearLayout>
 
@@ -176,13 +193,15 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Country"
-                android:textSize="15sp"/>
+                android:textSize="18sp"
+                android:textStyle="bold"/>
             <EditText
                 android:id="@+id/countryText"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
-                android:layout_weight="2"
-                android:hint="Enter country"/>
+                android:layout_weight="3"
+                android:hint="Enter country"
+                android:textSize="15sp"/>
         </LinearLayout>
 
         <LinearLayout
@@ -194,7 +213,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Dish Preferences:"
-                android:textSize="15sp"/>
+                android:textSize="18sp"
+                android:textStyle="bold"/>
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -211,19 +231,21 @@
                     android:orientation="vertical"
                     android:gravity="center"
                     android:padding="2dp"
-                    android:background="?attr/selectableItemBackground"
-                    android:clickable="true">
+                    android:background="@drawable/selector_background"
+                    android:clickable="true"
+                    android:focusable="true">
                     <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
                         android:layout_marginBottom="4dp"
                         android:src="@drawable/chickenrice"
-                        android:contentDescription="Chicken rice"/>
+                        android:contentDescription="Chicken rice" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="Chicken rice"/>
+                        android:text="Chicken rice"
+                        android:textSize="15sp"/>
                 </LinearLayout>
 
                 <!-- Dish Option 2 -->
@@ -235,8 +257,9 @@
                     android:orientation="vertical"
                     android:gravity="center"
                     android:padding="2dp"
-                    android:background="?attr/selectableItemBackground"
-                    android:clickable="true">
+                    android:background="@drawable/selector_background"
+                    android:clickable="true"
+                    android:focusable="true">
                     <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
@@ -247,7 +270,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="Bak kut teh"/>
+                        android:text="Bak kut teh"
+                        android:textSize="15sp"/>
                 </LinearLayout>
 
                 <!-- Dish Option 3 -->
@@ -259,19 +283,21 @@
                     android:orientation="vertical"
                     android:gravity="center"
                     android:padding="2dp"
-                    android:background="?attr/selectableItemBackground"
-                    android:clickable="true">
+                    android:background="@drawable/selector_background"
+                    android:clickable="true"
+                    android:focusable="true">
                     <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
                         android:layout_marginBottom="4dp"
                         android:src="@drawable/ckt"
-                        android:contentDescription="Char kway teow"/>
+                        android:contentDescription="Char kway teow" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="Char kway teow" />
+                        android:text="Char kway teow"
+                        android:textSize="15sp"/>
                 </LinearLayout>
 
                 <!-- Dish Option 4 -->
@@ -283,8 +309,9 @@
                     android:orientation="vertical"
                     android:gravity="center"
                     android:padding="2dp"
-                    android:background="?attr/selectableItemBackground"
-                    android:clickable="true">
+                    android:background="@drawable/selector_background"
+                    android:clickable="true"
+                    android:focusable="true">
                     <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
@@ -295,7 +322,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="Kaya toast"/>
+                        android:text="Kaya toast"
+                        android:textSize="15sp"/>
                 </LinearLayout>
 
                 <!-- Dish Option 5 with Arrow Button -->
@@ -307,8 +335,9 @@
                     android:orientation="vertical"
                     android:gravity="center"
                     android:padding="2dp"
-                    android:background="?attr/selectableItemBackground"
-                    android:clickable="true">
+                    android:background="@drawable/selector_background"
+                    android:clickable="true"
+                    android:focusable="true">
                     <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
@@ -319,21 +348,22 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="Nasi lemak"/>
+                        android:text="Nasi lemak"
+                        android:textSize="15sp"/>
                 </LinearLayout>
 
                 <!-- Forward Arrow Button -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0.5"
+                    android:layout_weight="1"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:padding="2dp">
                     <ImageButton
                         android:id="@+id/showMoreBtn"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
                         android:src="@drawable/ic_arrow_forward"
                         android:background="?attr/selectableItemBackground"
                         android:contentDescription="Show More"/>
@@ -352,7 +382,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1.2"
                 android:text="Can you take the heat? "
-                android:textSize="15sp"/>
+                android:textSize="18sp"
+                android:textStyle="bold"/>
             <RadioGroup
                 android:id="@+id/spicyOptions"
                 android:layout_width="0dp"
@@ -363,12 +394,14 @@
                     android:id="@+id/spicyOption1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Of course"/>
+                    android:text="Of course"
+                    android:textSize="15sp"/>
                 <RadioButton
                     android:id="@+id/spicyOption2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Not so much"/>
+                    android:text="Not so much"
+                    android:textSize="15sp"/>
             </RadioGroup>
         </LinearLayout>
 
@@ -383,29 +416,33 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Budget "
-                android:textSize="15sp"/>
+                android:textSize="18sp"
+                android:textStyle="bold"/>
             <RadioGroup
                 android:id="@+id/budgetOptions"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="2"
+                android:layout_weight="3"
                 android:gravity="center"
                 android:orientation="horizontal">
                 <RadioButton
                     android:id="@+id/budgetOption1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Low"/>
+                    android:text="Low"
+                    android:textSize="15sp"/>
                 <RadioButton
                     android:id="@+id/budgetOption2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Medium"/>
+                    android:text="Medium"
+                    android:textSize="15sp"/>
                 <RadioButton
                     android:id="@+id/budgetOption3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="High"/>
+                    android:text="High"
+                    android:textSize="15sp"/>
             </RadioGroup>
         </LinearLayout>
 
@@ -421,7 +458,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Allergy "
-                android:textSize="15sp"/>
+                android:textSize="18sp"
+                android:textStyle="bold"/>
 
             <androidx.gridlayout.widget.GridLayout
                 android:id="@+id/allergyOptionsGrid"
@@ -432,50 +470,57 @@
                 app:rowCount="2"
                 app:orientation="horizontal">
 
-                <RadioButton
+                <CheckBox
                     android:id="@+id/allergyOption1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Gluten"/>
+                    android:text="Gluten"
+                    android:textSize="15sp"/>
 
-                <RadioButton
+                <CheckBox
                     android:id="@+id/allergyOption2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Dairy"/>
+                    android:text="Seafood"
+                    android:textSize="15sp"/>
 
-                <RadioButton
+                <CheckBox
                     android:id="@+id/allergyOption3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Seafood"/>
+                    android:text="Dairy"
+                    android:textSize="15sp"/>
 
-                <RadioButton
+                <CheckBox
                     android:id="@+id/allergyOption4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Peanut"/>
+                    android:text="Egg"
+                    android:textSize="15sp"/>
 
-                <RadioButton
+                <CheckBox
                     android:id="@+id/allergyOption5"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Egg"/>
+                    android:text="Peanut"
+                    android:textSize="15sp"/>
 
-                <RadioButton
+                <CheckBox
                     android:id="@+id/allergyOption6"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Sesame"/>
+                    android:text="Sesame"
+                    android:textSize="15sp"/>
 
-                <RadioButton
+                <CheckBox
                     android:id="@+id/allergyOption7"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Soy"/>
+                    android:text="Soy"
+                    android:textSize="15sp"/>
             </androidx.gridlayout.widget.GridLayout>
-        </LinearLayout>
 
+        </LinearLayout>
 
         <Button
             android:id="@+id/registerBtn"

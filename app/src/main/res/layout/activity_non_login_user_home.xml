@@ -7,45 +7,54 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:layout_margin="20dp"
-    tools:context=".UserHomeActivity">
+    tools:context=".NonLoginHomeActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="70dp"
-        android:orientation="horizontal">
-        <Button
+        android:layout_height="100dp"
+        android:orientation="horizontal"
+        android:gravity="center">
+        <TextView
             android:id="@+id/loginBtn"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:gravity="center"
             android:layout_gravity="center"
             android:text="Login"
-            android:textSize="18sp" />
+            android:textStyle="bold"
+            android:textColor="@color/appGreen"
+            android:textSize="25sp"
+            android:clickable="true"/>
         <ImageView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
             android:layout_weight="1"
+            android:layout_gravity="center"
             android:src="@drawable/logo" />
         <ImageButton
             android:id="@+id/cameraBtn"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
             android:layout_weight="1"
+            android:layout_gravity="center"
             android:background="@null"
-            android:src="@drawable/ic_camera" />
+            android:src="@drawable/ic_camera"
+            android:contentDescription="camera icon"/>
     </LinearLayout>
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="200dp"
-        android:layout_marginVertical="20dp"/>
-
+        android:layout_marginVertical="10dp"/>
+    <SearchView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:iconifiedByDefault="false"
+        android:queryHint="Keyword search"
+        android:layout_marginVertical="10dp"/>
     <ListView
         android:id="@+id/listView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-
 </LinearLayout>

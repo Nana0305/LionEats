@@ -7,12 +7,15 @@ import android.os.Looper;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
+
+import model.User;
 
 public class UserHomeActivity extends AppCompatActivity implements ImageAdapter.OnItemClickListener {
 	private ViewPager2 viewPager;
@@ -25,7 +28,6 @@ public class UserHomeActivity extends AppCompatActivity implements ImageAdapter.
 	private Handler handler;
 	private Runnable runnable;
 	private int currentItem = 0;
-	private TextView userNameTextView;
 	private String selectedDish;
 	private String selectedLocation;
 	private String selectedBudget;
@@ -39,9 +41,26 @@ public class UserHomeActivity extends AppCompatActivity implements ImageAdapter.
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_user_home);
 
-		userNameTextView = findViewById(R.id.username);
+		// Header row elements
+		TextView userNameText = findViewById(R.id.usernameText);
+		TextView logoutBtn = findViewById(R.id.logoutBtn);
+		ImageButton cameraBtn = findViewById(R.id.cameraBtn);
 		String username = getIntent().getStringExtra("USERNAME");
-		userNameTextView.setText(username);
+		userNameText.setText(username);
+		logoutBtn.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				//logout
+			}
+		});
+		cameraBtn.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(UserHomeActivity.this, ImageResultActivity.class);
+				intent.putExtra("USERNAME", username);
+				startActivity(intent);
+			}
+		});
 
 		// Carousel with dish images, click to dish details
 		viewPager = findViewById(R.id.viewPager);

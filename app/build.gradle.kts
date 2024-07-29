@@ -32,14 +32,20 @@ android {
 }
 
 dependencies {
-    implementation("androidx.viewpager2:viewpager2:1.0.0")
-    implementation("com.google.android.material:material:1.6.1")
+    implementation("androidx.viewpager2:viewpager2:1.1.0")
     implementation("androidx.gridlayout:gridlayout:1.0.0")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation("com.google.code.gson:gson:2.8.8")
     testImplementation(libs.junit)
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.9.1")
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    androidTestImplementation("androidx.test:core:1.6.1")
+    androidTestImplementation("androidx.test:rules:1.6.1")
+    androidTestImplementation("androidx.test:runner:1.6.1")
 }
