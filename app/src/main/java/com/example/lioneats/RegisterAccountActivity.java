@@ -12,6 +12,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -80,7 +82,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
 
 	public void registerUser() {
 		// Your Postman Mock Server URL (using HTTPS)
-		String baseUrl = "https://8b1c60a4-e961-4c6f-95a0-c821537ca602.mock.pstmn.io"; // Use HTTPS
+		String baseUrl = "https://a867fedb-31a5-49ed-924f-cc87386050ec.mock.pstmn.io"; // Use HTTPS
 
 		// Collect input data
 		String name = nameText.getText().toString();
@@ -130,6 +132,9 @@ public class RegisterAccountActivity extends AppCompatActivity {
 				if (response.isSuccessful()) {
 					Log.d("RegisterAccountActivity", "Registration Successful: " + response.body().toString());
 					Toast.makeText(RegisterAccountActivity.this, "Registration Successful!", Toast.LENGTH_SHORT).show();
+					Intent intent = new Intent(RegisterAccountActivity.this, UserHomeActivity.class);
+					intent.putExtra("USERNAME", username);
+					startActivity(intent);
 				} else {
 					try {
 						Log.e("RegisterAccountActivity", "Registration Failed: " + response.errorBody().string());

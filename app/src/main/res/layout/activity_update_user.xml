@@ -36,7 +36,6 @@
                 android:layout_width="0dp"
                 android:layout_height="48dp"
                 android:layout_weight="3"
-                android:text="Sophie Chen"
                 android:textSize="15sp"/>
         </LinearLayout>
 
@@ -57,7 +56,6 @@
                 android:layout_width="0dp"
                 android:layout_height="48dp"
                 android:layout_weight="3"
-                android:text="sophiechen"
                 android:textSize="15sp"/>
         </LinearLayout>
 
@@ -79,7 +77,6 @@
                 android:layout_height="48dp"
                 android:layout_weight="3"
                 android:hint="Enter password"
-                android:text="********"
                 android:textSize="15sp"
                 android:inputType="textPassword"/>
         </LinearLayout>
@@ -102,7 +99,6 @@
                 android:layout_height="48dp"
                 android:layout_weight="3"
                 android:hint="Enter email"
-                android:text="myemail@gmail.com"
                 android:textSize="15sp"
                 android:inputType="textEmailAddress"/>
         </LinearLayout>
@@ -131,8 +127,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="&lt;21"
-                    android:textSize="15sp"
-                    android:checked="true"/>
+                    android:textSize="15sp"/>
                 <RadioButton
                     android:id="@+id/ageOption2"
                     android:layout_width="wrap_content"
@@ -183,9 +178,7 @@
                     android:id="@+id/genderOption2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Female"
-                    android:textSize="15sp"
-                    android:checked="true"/>
+                    android:text="Female"/>
             </RadioGroup>
         </LinearLayout>
 
@@ -207,7 +200,6 @@
                 android:layout_height="48dp"
                 android:layout_weight="3"
                 android:hint="Enter country"
-                android:text="China"
                 android:textSize="15sp"/>
         </LinearLayout>
 
@@ -369,8 +361,8 @@
                     android:padding="2dp">
                     <ImageButton
                         android:id="@+id/showMoreBtn"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
                         android:src="@drawable/ic_arrow_forward"
                         android:background="?attr/selectableItemBackground"
                         android:contentDescription="Show More"/>
@@ -402,8 +394,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Of course"
-                    android:textSize="15sp"
-                    android:checked="true"/>
+                    android:textSize="15sp"/>
                 <RadioButton
                     android:id="@+id/spicyOption2"
                     android:layout_width="wrap_content"
@@ -438,8 +429,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Low"
-                    android:textSize="15sp"
-                    android:checked="true"/>
+                    android:textSize="15sp"/>
                 <RadioButton
                     android:id="@+id/budgetOption2"
                     android:layout_width="wrap_content"
@@ -532,7 +522,7 @@
         </LinearLayout>
 
         <Button
-            android:id="@+id/registerBtn"
+            android:id="@+id/updateBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -542,4 +532,3 @@
     </LinearLayout>
 
 </ScrollView>
-

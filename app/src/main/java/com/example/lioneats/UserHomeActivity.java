@@ -53,6 +53,14 @@ public class UserHomeActivity extends AppCompatActivity implements ImageAdapter.
 				//logout
 			}
 		});
+		userNameText.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(UserHomeActivity.this, UpdateUserActivity.class);
+				intent.putExtra("USERNAME", username);
+				startActivity(intent);
+			}
+		});
 		cameraBtn.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {

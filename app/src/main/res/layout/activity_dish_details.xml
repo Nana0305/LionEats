@@ -8,10 +8,12 @@
     android:orientation="vertical"
     android:layout_margin="20dp"
     tools:context=".DishDetailsActivity">
+
     <include
         layout="@layout/header_row"
         android:layout_width="match_parent"
         android:layout_height="100dp"/>
+
     <ImageView
         android:id="@+id/dishImage"
         android:layout_width="match_parent"
@@ -19,17 +21,72 @@
         android:layout_gravity="center"
         android:layout_marginVertical="10dp"
         android:src="@drawable/chickenrice"/>
+
     <TextView
-        android:id="@+id/dishTitle"
+        android:id="@+id/dishNameText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:layout_marginVertical="5dp"
-        android:textSize="20dp"
-        android:text="Hainanese Chicken Rice"/>
-    <TextView
+        android:textSize="20sp"
+        android:textStyle="bold"/>
+
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Ingredients: Chicekn, salt, water, ginger, spring onions, jasmine rice, chicken fat, garlic, chicken stock\n\nSauces: light soy sauce, dark soy sauce, sesame oil, ginger sauce, chilli sauce\nGarnishes: cucumber slices, fresh coriander, spring onions\n\nHainanese Chicken Rice has a storied history that reflects the cultural melting pot of Singapore. It was brought to Singapore by Chinese immigrants from Hainan province. Over time, it evolved to include local influences and preferences.\n\nThe dish became popular in the 1920s and 1930s, with Hainanese immigrants opening food stalls and restaurants. Today, it is considered a national dish of Singapore, enjoyed by people from all walks of life.\n\nHainanese Chicken Rice exemplifies the perfect balance of textures and flavors, combining tender chicken, fragrant rice, and vibrant sauces. Its popularity extends beyond Singapore, making it a well-loved dish in Southeast Asian cuisine."/>
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Allergy Cautions"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/appOrange"/>
+            <TextView
+                android:id="@+id/dishAllergiesText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/appOrange"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="5dp"
+                android:text="Ingredients"
+                android:textStyle="bold"
+                android:textSize="16sp"/>
+            <TextView
+                android:id="@+id/dishIngredientsText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="5dp"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:text="History"/>
+            <TextView
+                android:id="@+id/dishHistoryText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="5dp"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:text="Description"/>
+            <TextView
+                android:id="@+id/dishDescriptionText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+    </ScrollView>
 
 </LinearLayout>
