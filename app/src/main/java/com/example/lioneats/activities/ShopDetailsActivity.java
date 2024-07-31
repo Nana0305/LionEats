@@ -1,4 +1,4 @@
-package com.example.lioneats;
+package com.example.lioneats.activities;
 
 import android.os.Bundle;
 
@@ -7,18 +7,20 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.FragmentTransaction;
+
+import com.example.lioneats.R;
+import com.example.lioneats.fragments.HeaderFragment;
 
 public class ShopDetailsActivity extends AppCompatActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		EdgeToEdge.enable(this);
 		setContentView(R.layout.activity_shop_details);
-		ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-			Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-			v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-			return insets;
-		});
+
+		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+		transaction.replace(R.id.headerFragmentContainer, new HeaderFragment());
+		transaction.commit();
 	}
 }

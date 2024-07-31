@@ -1,21 +1,26 @@
-package com.example.lioneats;
+package com.example.lioneats.activities;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager2.widget.ViewPager2;
 
-public class UserHomeActivity extends AppCompatActivity implements ImageAdapter.OnItemClickListener {
+import com.example.lioneats.R;
+import com.example.lioneats.adapters.ImageAdapter;
+import com.example.lioneats.adapters.MyCustomAdapter;
+import com.example.lioneats.fragments.HeaderFragment;
+
+public class MainActivity extends AppCompatActivity implements ImageAdapter.OnItemClickListener {
 	private ViewPager2 viewPager;
 	private final int[] images = {R.drawable.dish_image_1, R.drawable.dish_image_2, R.drawable.dish_image_3, R.drawable.dish_image_4, R.drawable.dish_image_5, R.drawable.dish_image_6, R.drawable.dish_image_7, R.drawable.dish_image_8, R.drawable.dish_image_9, R.drawable.dish_image_10};
 	private final String[] ranks = {"best_rating", "best_value", "close_distance"};
@@ -37,35 +42,22 @@ public class UserHomeActivity extends AppCompatActivity implements ImageAdapter.
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_user_home);
+		setContentView(R.layout.activity_main);
 
-		TextView userNameText = findViewById(R.id.usernameText);
-		TextView logoutBtn = findViewById(R.id.logoutBtn);
-		ImageButton cameraBtn = findViewById(R.id.cameraBtn);
-		String username = getIntent().getStringExtra("USERNAME");
-		userNameText.setText(username);
-		logoutBtn.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				//logout
-			}
-		});
-		userNameText.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Intent intent = new Intent(UserHomeActivity.this, UpdateUserActivity.class);
-				intent.putExtra("USERNAME", username);
-				startActivity(intent);
-			}
-		});
-		cameraBtn.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Intent intent = new Intent(UserHomeActivity.this, ImageResultActivity.class);
-				intent.putExtra("USERNAME", username);
-				startActivity(intent);
-			}
-		});
+		// Check if user is logged in
+		SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
+		String username = sharedPreferences.getString("username", null);
+
+		// Add HeaderFragment to the activity
+		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+		transaction.replace(R.id.headerFragmentContainer, new HeaderFragment());
+		transaction.commit();
+
+		// Show or hide layouts based on login status
+		if (username != null) {
+			findViewById(R.id.userHomeLayout).setVisibility(View.VISIBLE);
+			setupSpinners();
+		}
 
 		// Carousel with dish images, click to dish details
 		viewPager = findViewById(R.id.viewPager);
@@ -80,31 +72,33 @@ public class UserHomeActivity extends AppCompatActivity implements ImageAdapter.
 					currentItem = 0;
 				}
 				viewPager.setCurrentItem(currentItem++, true);
-				handler.postDelayed(this, 3000);
+				handler.postDelayed(this, 2000);
 			}
 		};
-		handler.postDelayed(runnable, 3000);
+		handler.postDelayed(runnable, 2000);
 
 		// List view of shops
 		ListView listView = findViewById(R.id.listView);
 		if (listView != null) {
 			listView.setAdapter(new MyCustomAdapter(this, ranks, titles, addresses, ratings));
-			listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+			listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 				@Override
-				public void onItemClick(AdapterView<?> parent, View view, int position, long id){
-					Intent intent = new Intent(UserHomeActivity.this, ShopDetailsActivity.class);
+				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+					Intent intent = new Intent(MainActivity.this, ShopDetailsActivity.class);
 					intent.putExtra("shopID", position);
 					startActivity(intent);
-			}
-		});
+				}
+			});
+		}
 	}
 
-		// Set up spinners
+	private void setupSpinners() {
 		for (int i = 0; i < spinnerIds.length; i++) {
 			initialiseSpinner(spinnerIds[i], spinnerItemArrays[i], i);
 		}
 	}
-	private void initialiseSpinner(int spinnerId, int arrayResourceId, final int index){
+
+	private void initialiseSpinner(int spinnerId, int arrayResourceId, final int index) {
 		Spinner spinner = findViewById(spinnerId);
 		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, arrayResourceId, android.R.layout.simple_spinner_item);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -134,21 +128,23 @@ public class UserHomeActivity extends AppCompatActivity implements ImageAdapter.
 
 			@Override
 			public void onNothingSelected(AdapterView<?> parent) {
-
+				// Do nothing
 			}
 		});
 	}
 
 	@Override
 	public void onItemClick(int position) {
-		Intent intent = new Intent(UserHomeActivity.this, DishDetailsActivity.class);
-		intent.putExtra("dishID", position+1);
+		Intent intent = new Intent(MainActivity.this, DishDetailsActivity.class);
+		intent.putExtra("dishID", position + 1);
 		startActivity(intent);
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		handler.removeCallbacks(runnable);
+		if (handler != null) {
+			handler.removeCallbacks(runnable);
+		}
 	}
 }

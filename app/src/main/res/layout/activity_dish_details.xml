@@ -7,12 +7,12 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:layout_margin="20dp"
-    tools:context=".DishDetailsActivity">
+    tools:context=".activities.DishDetailsActivity">
 
-    <include
-        layout="@layout/header_row"
+    <FrameLayout
+        android:id="@+id/headerFragmentContainer"
         android:layout_width="match_parent"
-        android:layout_height="100dp"/>
+        android:layout_height="100dp" />
 
     <ImageView
         android:id="@+id/dishImage"

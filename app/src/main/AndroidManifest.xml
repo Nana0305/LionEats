@@ -14,34 +14,28 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.LionEats"
         tools:targetApi="31"
-        android:networkSecurityConfig="@xml/network_security_config">>
+        android:networkSecurityConfig="@xml/network_security_config">
 
         <activity
-            android:name=".ImageResultActivity"
+            android:name=".activities.ImageResultActivity"
             android:exported="false" />
         <activity
-            android:name=".UpdateUserActivity"
+            android:name=".activities.UpdateUserActivity"
             android:exported="false" />
         <activity
-            android:name=".ShopDetailsActivity"
+            android:name=".activities.ShopDetailsActivity"
             android:exported="false" />
         <activity
-            android:name=".RegisterAccountActivity"
+            android:name=".activities.RegisterAccountActivity"
             android:exported="false" />
         <activity
-            android:name=".DishDetailsActivity"
+            android:name=".activities.DishDetailsActivity"
             android:exported="false" />
         <activity
-            android:name=".LoginActivity"
+            android:name=".activities.LoginActivity"
             android:exported="false" />
         <activity
-            android:name=".UserHomeActivity"
-            android:exported="false" />
-        <activity
-            android:name=".NonLoginHomeActivity"
-            android:exported="false" />
-        <activity
-            android:name=".MainActivity"
+            android:name=".activities.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

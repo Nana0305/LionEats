@@ -1,4 +1,4 @@
-package com.example.lioneats;
+package com.example.lioneats.adapters;
 
 import android.app.Activity;
 import android.content.Context;
@@ -10,6 +10,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+
+import com.example.lioneats.R;
 
 public class MyCustomAdapter extends ArrayAdapter<Object> {
 	private final Context context;

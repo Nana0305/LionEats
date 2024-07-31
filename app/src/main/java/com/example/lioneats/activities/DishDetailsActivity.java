@@ -1,5 +1,6 @@
-package com.example.lioneats;
+package com.example.lioneats.activities;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
@@ -7,11 +8,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentTransaction;
 
+import com.example.lioneats.R;
+import com.example.lioneats.api.ApiService;
+import com.example.lioneats.fragments.HeaderFragment;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import model.Dish;
+import com.example.lioneats.models.Dish;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -21,10 +26,15 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class DishDetailsActivity extends AppCompatActivity {
 	private TextView dishNameText, dishAllergiesText, dishIngredientsText, dishHistoryText, dishDescriptionText;
 	private ImageView dishImage;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_dish_details);
+
+		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+		transaction.replace(R.id.headerFragmentContainer, new HeaderFragment());
+		transaction.commit();
 
 		dishNameText = findViewById(R.id.dishNameText);
 		dishAllergiesText = findViewById(R.id.dishAllergiesText);
@@ -35,6 +45,7 @@ public class DishDetailsActivity extends AppCompatActivity {
 
 		int dishID = getIntent().getIntExtra("dishID", -1);
 		if (dishID != -1){
+			setDishImage(dishID);
 			fetchDishData(dishID);
 		} else {
 			Toast.makeText(this, "Invalid dish ID", Toast.LENGTH_SHORT).show();
@@ -48,25 +59,25 @@ public class DishDetailsActivity extends AppCompatActivity {
 
 	private int getDrawableResourceByDishID(int dishID) {
 		switch (dishID) {
-			case 0:
-				return R.drawable.dish_image_1;
 			case 1:
-				return R.drawable.dish_image_2;
+				return R.drawable.dish_image_1;
 			case 2:
-				return R.drawable.dish_image_3;
+				return R.drawable.dish_image_2;
 			case 3:
-				return R.drawable.dish_image_4;
+				return R.drawable.dish_image_3;
 			case 4:
-				return R.drawable.dish_image_5;
+				return R.drawable.dish_image_4;
 			case 5:
-				return R.drawable.dish_image_6;
+				return R.drawable.dish_image_5;
 			case 6:
-				return R.drawable.dish_image_7;
+				return R.drawable.dish_image_6;
 			case 7:
-				return R.drawable.dish_image_8;
+				return R.drawable.dish_image_7;
 			case 8:
-				return R.drawable.dish_image_9;
+				return R.drawable.dish_image_8;
 			case 9:
+				return R.drawable.dish_image_9;
+			case 10:
 				return R.drawable.dish_image_10;
 			default:
 				return R.drawable.default_image;
@@ -74,7 +85,7 @@ public class DishDetailsActivity extends AppCompatActivity {
 	}
 
 	private void fetchDishData(int dishID){
-		String baseUrl = "https://a867fedb-31a5-49ed-924f-cc87386050ec.mock.pstmn.io"; // Replace with your actual mock server URL
+		String baseUrl = "https://a867fedb-31a5-49ed-924f-cc87386050ec.mock.pstmn.io/"; // Make sure this ends with a slash
 
 		Retrofit retrofit = new Retrofit.Builder()
 				.baseUrl(baseUrl)

@@ -1,6 +1,7 @@
-package com.example.lioneats;
+package com.example.lioneats.activities;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -8,13 +9,14 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.lioneats.R;
+import com.example.lioneats.api.ApiService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -23,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 
-import model.User;
+import com.example.lioneats.models.User;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -36,7 +38,6 @@ public class UpdateUserActivity extends AppCompatActivity {
 	private TextView nameText, usernameText;
 	private EditText passwordText, emailText, countryText;
 	private RadioGroup ageOptions, genderOptions, spicyOptions, budgetOptions;
-	private LinearLayout dishOption1, dishOption2, dishOption3, dishOption4, dishOption5;
 	private List<LinearLayout> dishOptionsList;
 	private final List<String> dishPreferences = Arrays.asList("Chicken rice", "Bak kut teh", "Char kway teow", "Kaya toast", "Nasi lemak");
 	private final List<String> allergies = Arrays.asList("Gluten", "Dairy", "Seafood", "Peanut", "Egg", "Sesame", "Soy");
@@ -56,15 +57,16 @@ public class UpdateUserActivity extends AppCompatActivity {
 		spicyOptions = findViewById(R.id.spicyOptions);
 		budgetOptions = findViewById(R.id.budgetOptions);
 
-		dishOption1 = findViewById(R.id.dishOption1);
-		dishOption2 = findViewById(R.id.dishOption2);
-		dishOption3 = findViewById(R.id.dishOption3);
-		dishOption4 = findViewById(R.id.dishOption4);
-		dishOption5 = findViewById(R.id.dishOption5);
+		LinearLayout dishOption1 = findViewById(R.id.dishOption1);
+		LinearLayout dishOption2 = findViewById(R.id.dishOption2);
+		LinearLayout dishOption3 = findViewById(R.id.dishOption3);
+		LinearLayout dishOption4 = findViewById(R.id.dishOption4);
+		LinearLayout dishOption5 = findViewById(R.id.dishOption5);
 
 		dishOptionsList = Arrays.asList(dishOption1, dishOption2, dishOption3, dishOption4, dishOption5);
-
-		fetchUserData();
+		SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
+		String username = sharedPreferences.getString("username", null);
+		fetchUserData(username);
 
 		Button updateBtn = findViewById(R.id.updateBtn);
 		updateBtn.setOnClickListener(new View.OnClickListener() {
@@ -75,16 +77,15 @@ public class UpdateUserActivity extends AppCompatActivity {
 		});
 	}
 
-	private void fetchUserData() {
-		String baseUrl = "https://a867fedb-31a5-49ed-924f-cc87386050ec.mock.pstmn.io"; // Replace with your actual mock server URL
-
+	private void fetchUserData(String username) {
+		String baseUrl = "https://a867fedb-31a5-49ed-924f-cc87386050ec.mock.pstmn.io";
 		Retrofit retrofit = new Retrofit.Builder()
 				.baseUrl(baseUrl)
 				.addConverterFactory(GsonConverterFactory.create())
 				.build();
 
 		ApiService apiService = retrofit.create(ApiService.class);
-		Call<User> call = apiService.getUser();
+		Call<User> call = apiService.getUser(username);
 
 		call.enqueue(new Callback<User>() {
 			@Override
@@ -163,10 +164,8 @@ public class UpdateUserActivity extends AppCompatActivity {
 	}
 
 	public void updateUser() {
-		// Your Postman Mock Server URL (using HTTPS)
-		String baseUrl = "https://a867fedb-31a5-49ed-924f-cc87386050ec.mock.pstmn.io"; // Use HTTPS
+		String baseUrl = "https://a867fedb-31a5-49ed-924f-cc87386050ec.mock.pstmn.io";
 
-		// Collect input data
 		String name = nameText.getText().toString();
 		String username = usernameText.getText().toString();
 		String password = passwordText.getText().toString();
@@ -179,7 +178,6 @@ public class UpdateUserActivity extends AppCompatActivity {
 		List<String> selectedDishPrefs = getSelectedDishPreferences();
 		List<String> selectedAllergies = getSelectedAllergies();
 
-		// Create User object and set its fields
 		User user = new User();
 		user.setName(name);
 		user.setUsername(username);
@@ -198,7 +196,6 @@ public class UpdateUserActivity extends AppCompatActivity {
 		String userJson = gson.toJson(user);
 		Log.d("RegisterAccountActivity", "User JSON: " + userJson);
 
-		// Create Retrofit instance
 		Retrofit retrofit = new Retrofit.Builder()
 				.baseUrl(baseUrl)
 				.addConverterFactory(GsonConverterFactory.create())
@@ -207,14 +204,13 @@ public class UpdateUserActivity extends AppCompatActivity {
 		ApiService apiService = retrofit.create(ApiService.class);
 		Call<ResponseBody> call = apiService.updateUser(user);
 
-		// Make the API call
 		call.enqueue(new Callback<ResponseBody>() {
 			@Override
 			public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
 				if (response.isSuccessful()) {
 					Log.d("UpdateUserActivity", "Update Successful: " + response.body().toString());
 					Toast.makeText(UpdateUserActivity.this, "Update User Details Successful!", Toast.LENGTH_SHORT).show();
-					Intent intent = new Intent(UpdateUserActivity.this, UserHomeActivity.class);
+					Intent intent = new Intent(UpdateUserActivity.this, MainActivity.class);
 					intent.putExtra("USERNAME", username);
 					startActivity(intent);
 				} else {

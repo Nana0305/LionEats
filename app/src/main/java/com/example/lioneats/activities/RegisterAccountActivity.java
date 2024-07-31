@@ -1,11 +1,13 @@
-package com.example.lioneats;
+package com.example.lioneats.activities;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.io.IOException;
 
-import model.User;
+import com.example.lioneats.R;
+import com.example.lioneats.api.ApiService;
+import com.example.lioneats.models.User;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -132,7 +134,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
 				if (response.isSuccessful()) {
 					Log.d("RegisterAccountActivity", "Registration Successful: " + response.body().toString());
 					Toast.makeText(RegisterAccountActivity.this, "Registration Successful!", Toast.LENGTH_SHORT).show();
-					Intent intent = new Intent(RegisterAccountActivity.this, UserHomeActivity.class);
+					Intent intent = new Intent(RegisterAccountActivity.this, MainActivity.class);
 					intent.putExtra("USERNAME", username);
 					startActivity(intent);
 				} else {

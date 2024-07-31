@@ -1,4 +1,4 @@
-package model;
+package com.example.lioneats.models;
 
 import java.util.List;
 

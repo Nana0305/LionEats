@@ -1,11 +1,10 @@
-package com.example.lioneats;
+package com.example.lioneats.api;
 
-import java.util.List;
-
-import model.Dish;
-import model.User;
+import com.example.lioneats.models.Dish;
+import com.example.lioneats.models.LoginRequest;
+import com.example.lioneats.models.LoginResponse;
+import com.example.lioneats.models.User;
 import okhttp3.ResponseBody;
-import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -13,9 +12,11 @@ import retrofit2.http.POST;
 import retrofit2.http.Path;
 
 public interface ApiService {
+	@POST("api/login")
+	Call<LoginResponse> login(@Body LoginRequest loginRequest);
 
-	@GET("api/user")
-	Call<User> getUser();
+	@GET("api/user/{username}")
+	Call<User> getUser(@Path("username") String username);
 
 	@POST("api/registerUser")
 	Call<ResponseBody> registerUser(@Body User user);
