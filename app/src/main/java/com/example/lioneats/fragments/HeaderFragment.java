@@ -69,14 +69,7 @@ public class HeaderFragment extends Fragment {
 					startActivity(intent);
 				}
 			});
-			logoBtn.setClickable(true);
-			logoBtn.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					Intent intent = new Intent(getActivity(), MainActivity.class);
-					startActivity(intent);
-				}
-			});
+
 		} else {
 			usernameText.setText("Guest");
 			actionBtn.setText("Login");
@@ -95,6 +88,14 @@ public class HeaderFragment extends Fragment {
 				}
 			});
 		}
+		logoBtn.setClickable(true);
+		logoBtn.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(getActivity(), MainActivity.class);
+				startActivity(intent);
+			}
+		});
 		return view;
 	}
 
