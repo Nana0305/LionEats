@@ -21,7 +21,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 public class NonLoginHomeActivity extends AppCompatActivity implements ImageAdapter.OnItemClickListener {
 	private ViewPager2 viewPager;
-	private final int[] images = {R.drawable.bkt, R.drawable.ckt, R.drawable.kayatoast};
+	private final int[] images = {R.drawable.dish_image_1, R.drawable.dish_image_2, R.drawable.dish_image_3, R.drawable.dish_image_4, R.drawable.dish_image_5, R.drawable.dish_image_6, R.drawable.dish_image_7, R.drawable.dish_image_8, R.drawable.dish_image_9, R.drawable.dish_image_10};
 	private final String[] ranks = {"best_rating", "best_value", "close_distance"};
 	private final String[] titles = {"Kedai Kopi - Yishun 925", "Ang Mo Kio Fried Kway Teow", "Old Word Bakuteh & Fried Porridge"};
 	private final String[] addresses = {"925 Yishun Central 1, #01-211", "724 Ang Mo Kio 6, #01-22", "Blk 101 Yishun Ave 5, #01-55"};
@@ -46,6 +46,7 @@ public class NonLoginHomeActivity extends AppCompatActivity implements ImageAdap
 				startActivity(intent);
 			}
 		});
+
 		cameraBtn = findViewById(R.id.cameraBtn);
 		cameraBtn.setOnClickListener(new View.OnClickListener(){
 			@Override
@@ -101,7 +102,7 @@ public class NonLoginHomeActivity extends AppCompatActivity implements ImageAdap
 	@Override
 	public void onItemClick(int position) {
 		Intent intent = new Intent(NonLoginHomeActivity.this, DishDetailsActivity.class);
-		intent.putExtra("dishID", position);
+		intent.putExtra("dishID", position+1);
 		startActivity(intent);
 	}
 

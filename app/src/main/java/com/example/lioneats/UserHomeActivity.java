@@ -15,11 +15,9 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
-import model.User;
-
 public class UserHomeActivity extends AppCompatActivity implements ImageAdapter.OnItemClickListener {
 	private ViewPager2 viewPager;
-	private int[] images = {R.drawable.chickenrice, R.drawable.ckt, R.drawable.nasilemak};
+	private final int[] images = {R.drawable.dish_image_1, R.drawable.dish_image_2, R.drawable.dish_image_3, R.drawable.dish_image_4, R.drawable.dish_image_5, R.drawable.dish_image_6, R.drawable.dish_image_7, R.drawable.dish_image_8, R.drawable.dish_image_9, R.drawable.dish_image_10};
 	private final String[] ranks = {"best_rating", "best_value", "close_distance"};
 	private final String[] titles = {"Good Luck Boneless Chicken Rice", "Ji De Lai Hainanese Chicken Rice", "QMeal Fragrant Chicken Rice"};
 	private final String[] addresses = {"769 Yishun Ave 3, #01-277", "105 Yishun Ring Rd, #01-152", "105 Yishun Ring Rd,#01-150"};
@@ -41,7 +39,6 @@ public class UserHomeActivity extends AppCompatActivity implements ImageAdapter.
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_user_home);
 
-		// Header row elements
 		TextView userNameText = findViewById(R.id.usernameText);
 		TextView logoutBtn = findViewById(R.id.logoutBtn);
 		ImageButton cameraBtn = findViewById(R.id.cameraBtn);
@@ -74,6 +71,7 @@ public class UserHomeActivity extends AppCompatActivity implements ImageAdapter.
 		viewPager = findViewById(R.id.viewPager);
 		ImageAdapter adapter = new ImageAdapter(this, images, this);
 		viewPager.setAdapter(adapter);
+
 		handler = new Handler(Looper.getMainLooper());
 		runnable = new Runnable() {
 			@Override
@@ -144,7 +142,7 @@ public class UserHomeActivity extends AppCompatActivity implements ImageAdapter.
 	@Override
 	public void onItemClick(int position) {
 		Intent intent = new Intent(UserHomeActivity.this, DishDetailsActivity.class);
-		intent.putExtra("dishID", position);
+		intent.putExtra("dishID", position+1);
 		startActivity(intent);
 	}
 

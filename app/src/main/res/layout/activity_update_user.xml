@@ -237,7 +237,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
                         android:layout_marginBottom="4dp"
-                        android:src="@drawable/chickenrice"
+                        android:src="@drawable/dish_image_1"
                         android:contentDescription="Chicken rice" />
                     <TextView
                         android:layout_width="wrap_content"
@@ -263,13 +263,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
                         android:layout_marginBottom="4dp"
-                        android:src="@drawable/bkt"
-                        android:contentDescription="Bak kut teh"/>
+                        android:src="@drawable/dish_image_2"
+                        android:contentDescription="Chilli crab"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="Bak kut teh"
+                        android:text="Chilli crab"
                         android:textSize="15sp"/>
                 </LinearLayout>
 
@@ -289,13 +289,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
                         android:layout_marginBottom="4dp"
-                        android:src="@drawable/ckt"
-                        android:contentDescription="Char kway teow" />
+                        android:src="@drawable/dish_image_3"
+                        android:contentDescription="Cendol" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="Char kway teow"
+                        android:text="Cendol"
                         android:textSize="15sp"/>
                 </LinearLayout>
 
@@ -315,13 +315,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
                         android:layout_marginBottom="4dp"
-                        android:src="@drawable/kayatoast"
-                        android:contentDescription="Kaya toast"/>
+                        android:src="@drawable/dish_image_4"
+                        android:contentDescription="Chai tow kway"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="Kaya toast"
+                        android:text="Chai tow kway"
                         android:textSize="15sp"/>
                 </LinearLayout>
 
@@ -341,13 +341,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
                         android:layout_marginBottom="4dp"
-                        android:src="@drawable/nasilemak"
-                        android:contentDescription="Nasi lemak"/>
+                        android:src="@drawable/dish_image_5"
+                        android:contentDescription="Fish head curry"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="Nasi lemak"
+                        android:text="Fish head curry"
                         android:textSize="15sp"/>
                 </LinearLayout>
 

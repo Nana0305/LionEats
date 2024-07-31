@@ -23,6 +23,6 @@ public interface ApiService {
 	@POST("api/updateUser")
 	Call<ResponseBody> updateUser(@Body User user);
 
-	@GET("api/dish")
-	Call<Dish> getDish();
+	@GET("api/dish/{id}")
+	Call<Dish> getDishById(@Path("id") int id);
 }

@@ -32,7 +32,7 @@
             <Spinner
                 android:id="@+id/spinnerDish"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="35dp"
                 android:background="@drawable/spinner_background"/>
         </LinearLayout>
         <LinearLayout
@@ -48,7 +48,7 @@
             <Spinner
                 android:id="@+id/spinnerLocation"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="35dp"
                 android:background="@drawable/spinner_background"/>
         </LinearLayout>
         <LinearLayout
@@ -64,7 +64,7 @@
             <Spinner
                 android:id="@+id/spinnerBudget"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="35dp"
                 android:background="@drawable/spinner_background"/>
         </LinearLayout>
         <LinearLayout
@@ -80,7 +80,7 @@
             <Spinner
                 android:id="@+id/spinnerTiming"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="35dp"
                 android:background="@drawable/spinner_background"/>
         </LinearLayout>
         <LinearLayout
@@ -91,12 +91,12 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Allergen"
+                android:text="Allergy"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
             <Spinner
                 android:id="@+id/spinnerAllergen"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="35dp"
                 android:background="@drawable/spinner_background"/>
         </LinearLayout>
     </LinearLayout>

@@ -2,6 +2,7 @@ package com.example.lioneats;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,7 +20,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class DishDetailsActivity extends AppCompatActivity {
 	private TextView dishNameText, dishAllergiesText, dishIngredientsText, dishHistoryText, dishDescriptionText;
-
+	private ImageView dishImage;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -30,11 +31,49 @@ public class DishDetailsActivity extends AppCompatActivity {
 		dishIngredientsText = findViewById(R.id.dishIngredientsText);
 		dishHistoryText = findViewById(R.id.dishHistoryText);
 		dishDescriptionText = findViewById(R.id.dishDescriptionText);
+		dishImage = findViewById(R.id.dishImage);
 
-		fetchDishData();
+		int dishID = getIntent().getIntExtra("dishID", -1);
+		if (dishID != -1){
+			fetchDishData(dishID);
+		} else {
+			Toast.makeText(this, "Invalid dish ID", Toast.LENGTH_SHORT).show();
+		}
 	}
 
-	private void fetchDishData(){
+	private void setDishImage(int dishID) {
+		int imageResource = getDrawableResourceByDishID(dishID);
+		dishImage.setImageResource(imageResource);
+	}
+
+	private int getDrawableResourceByDishID(int dishID) {
+		switch (dishID) {
+			case 0:
+				return R.drawable.dish_image_1;
+			case 1:
+				return R.drawable.dish_image_2;
+			case 2:
+				return R.drawable.dish_image_3;
+			case 3:
+				return R.drawable.dish_image_4;
+			case 4:
+				return R.drawable.dish_image_5;
+			case 5:
+				return R.drawable.dish_image_6;
+			case 6:
+				return R.drawable.dish_image_7;
+			case 7:
+				return R.drawable.dish_image_8;
+			case 8:
+				return R.drawable.dish_image_9;
+			case 9:
+				return R.drawable.dish_image_10;
+			default:
+				return R.drawable.default_image;
+		}
+	}
+
+	private void fetchDishData(int dishID){
 		String baseUrl = "https://a867fedb-31a5-49ed-924f-cc87386050ec.mock.pstmn.io"; // Replace with your actual mock server URL
 
 		Retrofit retrofit = new Retrofit.Builder()
@@ -43,7 +82,7 @@ public class DishDetailsActivity extends AppCompatActivity {
 				.build();
 
 		ApiService apiService = retrofit.create(ApiService.class);
-		Call<Dish> call = apiService.getDish();
+		Call<Dish> call = apiService.getDishById(dishID);
 
 		call.enqueue(new Callback<Dish>() {
 			@Override

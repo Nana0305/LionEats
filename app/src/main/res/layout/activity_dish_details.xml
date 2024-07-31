@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginVertical="10dp"
-        android:src="@drawable/chickenrice"/>
+        android:src="@drawable/default_image"/>
 
     <TextView
         android:id="@+id/dishNameText"
