@@ -3,49 +3,67 @@ package com.example.lioneats.models;
 import java.util.List;
 
 public class Dish {
-	private String dishName;
-	private List<String> dishAllergies;
-	private String dishIngredients;
-	private String dishHistory;
-	private String dishDescription;
+	private int id;
+	private String name;
+	private List<String> allergies;
+	private String ingredients;
+	private String history;
+	private String description;
+	private String imageUrl;
 
-	public String getDishName() {
-		return dishName;
+	public int getId() {
+		return id;
 	}
 
-	public void setDishName(String dishName) {
-		this.dishName = dishName;
+	public void setId(int id) {
+		this.id = id;
 	}
 
-	public List<String> getDishAllergies() {
-		return dishAllergies;
+	public String getName() {
+		return name;
 	}
 
-	public void setDishAllergies(List<String> dishAllergies) {
-		this.dishAllergies = dishAllergies;
+	public void setName(String name) {
+		this.name = name;
 	}
 
-	public String getDishHistory() {
-		return dishHistory;
+	public List<String> getAllergies() {
+		return allergies;
 	}
 
-	public void setDishHistory(String dishHistory) {
-		this.dishHistory = dishHistory;
+	public void setAllergies(List<String> allergies) {
+		this.allergies = allergies;
 	}
 
-	public String getDishDescription() {
-		return dishDescription;
+	public String getIngredients() {
+		return ingredients;
 	}
 
-	public void setDishDescription(String dishDescription) {
-		this.dishDescription = dishDescription;
+	public void setIngredients(String ingredients) {
+		this.ingredients = ingredients;
 	}
 
-	public String getDishIngredients() {
-		return dishIngredients;
+	public String getHistory() {
+		return history;
 	}
 
-	public void setDishIngredients(String dishIngredients) {
-		this.dishIngredients = dishIngredients;
+	public void setHistory(String history) {
+		this.history = history;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getImageUrl() {
+		return imageUrl;
+	}
+
+	public void setImageUrl(String imageUrl) {
+		this.imageUrl = imageUrl;
 	}
 }

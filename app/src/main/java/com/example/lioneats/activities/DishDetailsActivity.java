@@ -1,6 +1,5 @@
 package com.example.lioneats.activities;
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
@@ -13,10 +12,10 @@ import androidx.fragment.app.FragmentTransaction;
 import com.example.lioneats.R;
 import com.example.lioneats.api.ApiService;
 import com.example.lioneats.fragments.HeaderFragment;
+import com.example.lioneats.models.Dish;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import com.example.lioneats.models.Dish;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -104,8 +103,8 @@ public class DishDetailsActivity extends AppCompatActivity {
 					String jsonResponse = gson.toJson(response.body());
 					Log.d("DishDetailsActivity", "JSON Response: " + jsonResponse);
 
-					Dish dish = response.body();
-					updateUI(dish);
+					Dish dishDetail = response.body();
+					updateUI(dishDetail);
 				} else {
 					Toast.makeText(DishDetailsActivity.this, "Failed to fetch data", Toast.LENGTH_SHORT).show();
 				}
@@ -119,14 +118,14 @@ public class DishDetailsActivity extends AppCompatActivity {
 		});
 	}
 
-	private void updateUI(Dish dish){
-		dishNameText.setText(dish.getDishName());
-		dishIngredientsText.setText(dish.getDishIngredients());
-		dishHistoryText.setText(dish.getDishHistory());
-		dishDescriptionText.setText(dish.getDishDescription());
+	private void updateUI(Dish dishDetail){
+		dishNameText.setText(dishDetail.getName());
+		dishIngredientsText.setText(dishDetail.getIngredients());
+		dishHistoryText.setText(dishDetail.getHistory());
+		dishDescriptionText.setText(dishDetail.getDescription());
 
 		StringBuilder dishAllergies = new StringBuilder();
-		for (String allergy : dish.getDishAllergies()) {
+		for (String allergy : dishDetail.getAllergies()) {
 			dishAllergies.append(allergy).append(" allergy    ");
 		}
 		dishAllergiesText.setText(dishAllergies.toString());

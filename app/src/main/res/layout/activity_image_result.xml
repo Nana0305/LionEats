@@ -8,47 +8,73 @@
     android:orientation="vertical"
     android:layout_margin="20dp"
     tools:context=".activities.ImageResultActivity">
+
     <FrameLayout
         android:id="@+id/headerFragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="100dp" />
+
     <ImageView
+        android:id="@+id/imageView"
         android:layout_width="match_parent"
         android:layout_height="300dp"
         android:layout_marginVertical="10dp"
-        android:src="@drawable/sample_image"/>
+        android:scaleType="centerCrop"
+        android:contentDescription="uploaded image"/>
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Your dish is "
-        android:textSize="20dp"/>
+        android:text="Your dishDetail is "
+        android:textSize="20sp" />
+
     <TextView
+        android:id="@+id/resultText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:textSize="30dp"
-        android:text="Hainanese Chicken Rice"/>
+        android:textSize="30sp"
+        android:textStyle="bold" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:textSize="20dp"
+        android:textSize="20sp"
         android:textColor="#0000FF"
-        android:text="View dish details"
+        android:text="View dishDetail details"
         android:linksClickable="true"
-        android:autoLink="web"/>
+        android:autoLink="web" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
-        android:text="Not the right dish? Please let us know"
-        android:textSize="20dp"/>
+        android:text="Not the right dishDetail? Please let us know"
+        android:textSize="20sp" />
 
     <EditText
-        android:id="@+id/imageFeedback"
+        android:id="@+id/dishName"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
+        android:layout_height="wrap_content"
         android:background="@drawable/edit_text_background"
-        android:hint="Enter the correct dish name"
+        android:hint="Enter the correct dishDetail name"
         android:padding="10dp" />
+
+    <EditText
+        android:id="@+id/remarks"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/edit_text_background"
+        android:hint="Enter your remarks"
+        android:padding="10dp" />
+
+    <Button
+        android:id="@+id/submitBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Submit"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp" />
+
 </LinearLayout>

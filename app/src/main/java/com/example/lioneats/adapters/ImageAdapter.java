@@ -10,15 +10,23 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.lioneats.R;
+import com.example.lioneats.models.Dish;
+import com.squareup.picasso.Picasso;
+
+import java.util.List;
 
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHolder> {
 	private Context context;
-	private int[] images;
+	private List<Dish> dishList;
 	private OnItemClickListener onItemClickListener;
 
-	public ImageAdapter(Context context, int[] images, OnItemClickListener onItemClickListener) {
+	public interface OnItemClickListener {
+		void onItemClick(int position);
+	}
+
+	public ImageAdapter(Context context, List<Dish> dishList, OnItemClickListener onItemClickListener) {
 		this.context = context;
-		this.images = images;
+		this.dishList = dishList;
 		this.onItemClickListener = onItemClickListener;
 	}
 
@@ -31,23 +39,23 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
 
 	@Override
 	public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
-		holder.imageView.setImageResource(images[position]);
+		Dish dish = dishList.get(position);
+		Picasso.get()
+				.load(dish.getImageUrl())
+				.placeholder(R.drawable.default_image)
+				.into(holder.imageView);
 		holder.imageView.setOnClickListener(v -> onItemClickListener.onItemClick(position));
 	}
 
 	@Override
 	public int getItemCount() {
-		return images.length;
-	}
-
-	public interface OnItemClickListener {
-		void onItemClick(int position);
+		return dishList.size();
 	}
 
 	static class ImageViewHolder extends RecyclerView.ViewHolder {
 		ImageView imageView;
 
-		ImageViewHolder(@NonNull View itemView) {
+		public ImageViewHolder(@NonNull View itemView) {
 			super(itemView);
 			imageView = itemView.findViewById(R.id.imageView);
 		}

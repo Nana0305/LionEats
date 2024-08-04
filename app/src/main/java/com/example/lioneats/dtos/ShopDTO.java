@@ -5,6 +5,12 @@ import java.util.List;
 
 public class ShopDTO {
 
+	@SerializedName("keyword")
+	private String keyword;
+
+	@SerializedName("place_id")
+	private String placeId;
+
 	@SerializedName("name")
 	private String name;
 
@@ -124,6 +130,22 @@ public class ShopDTO {
 
 	public void setGoogleUrl(String googleUrl) {
 		this.googleUrl = googleUrl;
+	}
+
+	public String getKeyword() {
+		return keyword;
+	}
+
+	public void setKeyword(String keyword) {
+		this.keyword = keyword;
+	}
+
+	public String getPlaceId() {
+		return placeId;
+	}
+
+	public void setPlaceId(String placeId) {
+		this.placeId = placeId;
 	}
 }
 

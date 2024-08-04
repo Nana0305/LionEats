@@ -211,7 +211,6 @@ public class UpdateUserActivity extends AppCompatActivity {
 					Log.d("UpdateUserActivity", "Update Successful: " + response.body().toString());
 					Toast.makeText(UpdateUserActivity.this, "Update User Details Successful!", Toast.LENGTH_SHORT).show();
 					Intent intent = new Intent(UpdateUserActivity.this, MainActivity.class);
-					intent.putExtra("USERNAME", username);
 					startActivity(intent);
 				} else {
 					try {

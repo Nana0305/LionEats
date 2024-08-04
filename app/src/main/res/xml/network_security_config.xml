@@ -3,5 +3,6 @@
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">8b1c60a4-e961-4c6f-95a0-c821537ca602.mock.pstmn.io</domain>
         <domain includeSubdomains="true">192.168.1.206</domain>
+        <domain includeSubdomains="true">10.249.4.214</domain>
     </domain-config>
 </network-security-config>

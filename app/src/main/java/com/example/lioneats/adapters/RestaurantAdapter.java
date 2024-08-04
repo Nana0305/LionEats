@@ -1,5 +1,6 @@
 package com.example.lioneats.adapters;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
@@ -12,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.lioneats.R;
+import com.example.lioneats.activities.ShopDetailsActivity;
 import com.example.lioneats.api.FeedApi;
 import com.example.lioneats.dtos.ShopDTO;
 import com.example.lioneats.utils.RetrofitService;
@@ -23,6 +25,7 @@ import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
 
 public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.RestaurantViewHolder> {
 
@@ -43,9 +46,11 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 	public void onBindViewHolder(@NonNull RestaurantViewHolder holder, int position) {
 		FeedApi feedApi = RetrofitService.getInstance().create(FeedApi.class);
 		ShopDTO restaurant = restaurantList.get(position);
+
 		holder.nameTextView.setText(restaurant.getName());
 		holder.addressTextView.setText(restaurant.getFormattedAddress());
 		holder.ratingTextView.setText(String.valueOf(restaurant.getRating()));
+		holder.keyTextView.setText(String.valueOf(restaurant.getKeyword()));
 
 		if (restaurant.getPhotos() != null && !restaurant.getPhotos().isEmpty()) {
 			Call<ResponseBody> photoUrlCall = feedApi.getPhoto(restaurant.getPhotos().get(0).getPhotoReference());
@@ -57,23 +62,26 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 						InputStream inputStream = response.body().byteStream();
 						Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
 						holder.photoImageView.setImageBitmap(bitmap);
-						holder.photoImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
 					} else {
 						holder.photoImageView.setImageResource(R.drawable.logo);
-						holder.photoImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
 					}
 				}
 
 				@Override
 				public void onFailure(Call<ResponseBody> call, Throwable t) {
 					holder.photoImageView.setImageResource(R.drawable.logo);
-					holder.photoImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
 				}
 			});
 		} else {
 			holder.photoImageView.setImageResource(R.drawable.logo);
-			holder.photoImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
 		}
+
+		// Set click listener to navigate to ShopDetailsActivity
+		holder.itemView.setOnClickListener(v -> {
+			Intent intent = new Intent(holder.itemView.getContext(), ShopDetailsActivity.class);
+			intent.putExtra("placeId", restaurant.getPlaceId());
+			holder.itemView.getContext().startActivity(intent);
+		});
 	}
 
 	@Override
@@ -86,6 +94,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 		TextView nameTextView;
 		TextView addressTextView;
 		TextView ratingTextView;
+		TextView keyTextView;
 		ImageView photoImageView;
 
 		public RestaurantViewHolder(@NonNull View itemView) {
@@ -93,6 +102,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 			nameTextView = itemView.findViewById(R.id.restaurant_name);
 			addressTextView = itemView.findViewById(R.id.restaurant_address);
 			ratingTextView = itemView.findViewById(R.id.restaurant_rating);
+			keyTextView = itemView.findViewById(R.id.restaurant_key);
 			photoImageView = itemView.findViewById(R.id.restaurant_photo);
 		}
 	}

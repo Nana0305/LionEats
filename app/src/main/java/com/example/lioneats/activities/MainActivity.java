@@ -23,11 +23,13 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.example.lioneats.R;
 import com.example.lioneats.adapters.ImageAdapter;
 import com.example.lioneats.adapters.RestaurantAdapter;
+import com.example.lioneats.api.ApiService;
 import com.example.lioneats.api.FeedApi;
 import com.example.lioneats.dtos.NearByShopIdsDTO;
 import com.example.lioneats.dtos.ShopDTO;
 import com.example.lioneats.dtos.ShopPlaceIdDTO;
 import com.example.lioneats.fragments.HeaderFragment;
+import com.example.lioneats.models.Dish;
 import com.example.lioneats.utils.RetrofitService;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -42,16 +44,23 @@ import retrofit2.Call;
 import android.Manifest;
 import androidx.annotation.NonNull;
 import com.google.android.gms.location.LocationRequest;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity implements ImageAdapter.OnItemClickListener {
 	private ViewPager2 viewPager;
-	private final int[] images = {R.drawable.dish_image_1, R.drawable.dish_image_2, R.drawable.dish_image_3, R.drawable.dish_image_4, R.drawable.dish_image_5, R.drawable.dish_image_6, R.drawable.dish_image_7, R.drawable.dish_image_8, R.drawable.dish_image_9, R.drawable.dish_image_10};
-
+	//private final int[] images = {R.drawable.dish_image_1, R.drawable.dish_image_2, R.drawable.dish_image_3, R.drawable.dish_image_4, R.drawable.dish_image_5, R.drawable.dish_image_6, R.drawable.dish_image_7, R.drawable.dish_image_8, R.drawable.dish_image_9, R.drawable.dish_image_10};
 	private Handler handler;
 	private Runnable runnable;
 	private int currentItem = 0;
+	private List<Dish> dishList = new ArrayList<>();
+	private SharedPreferences sharedPreferences;
+
 	private String selectedDish;
 	private String selectedLocation;
 	private String selectedBudget;
@@ -79,10 +88,8 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		// Check if user is logged in
-		SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
+		sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
 		String username = sharedPreferences.getString("username", null);
-
 		// Add HeaderFragment to the activity
 		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 		transaction.replace(R.id.headerFragmentContainer, new HeaderFragment());
@@ -96,21 +103,13 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 
 		// Carousel with dish images, click to dish details
 		viewPager = findViewById(R.id.viewPager);
-		ImageAdapter adapter = new ImageAdapter(this, images, this);
-		viewPager.setAdapter(adapter);
-
-		handler = new Handler(Looper.getMainLooper());
-		runnable = new Runnable() {
-			@Override
-			public void run() {
-				if (currentItem == images.length) {
-					currentItem = 0;
-				}
-				viewPager.setCurrentItem(currentItem++, true);
-				handler.postDelayed(this, 2000);
-			}
-		};
-		handler.postDelayed(runnable, 2000);
+		String dishesJson = sharedPreferences.getString("dishes", null);
+		if (dishesJson != null) {
+			dishList = new Gson().fromJson(dishesJson, new TypeToken<List<Dish>>() {}.getType());
+			setupViewPager();
+		} else {
+			fetchAllDishes();
+		}
 
 		// Recycler view of shops
 		recyclerView = findViewById(R.id.recyclerView);
@@ -137,15 +136,11 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 				}
 				Location location = locationResult.getLastLocation();
 				if (location != null) {
-					fetchNearbyRestaurantIds(location.getLatitude(), location.getLongitude(), null, 0);
+					fetchNearbyRestaurants(location.getLatitude(), location.getLongitude(), null, 0);
 				}
 			}
 		};
 
-		//this method is put inside the onCreate method
-		// 1.to receive the permission from the user
-		//2.to retrieve the last location as soon as the activity has started
-		//3. to start displaying the restaurants as soon as possible
 		getLastLocation();
 	}
 
@@ -158,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 				public void onSuccess(Location location) {
 					// If the location is not null, fetch the restaurant
 					if (location != null) {
-						fetchNearbyRestaurantIds(location.getLatitude(), location.getLongitude(), null, 0);
+						fetchNearbyRestaurants(location.getLatitude(), location.getLongitude(), null, 0);
 					} else {
 						// If it is null, request for the new location
 						requestNewLocationData();
@@ -167,7 +162,6 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 			}).addOnFailureListener(new OnFailureListener() {
 				@Override
 				public void onFailure(@NonNull Exception e) {
-					// Handle the failure case
 					e.printStackTrace();
 					Log.e(TAG, "Error trying to get location", e);
 					Toast.makeText(MainActivity.this, "Error trying to get location", Toast.LENGTH_SHORT).show();
@@ -180,20 +174,15 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 
 	private void requestNewLocationData()
 	{
-		//create the instance of LocationRequest object
 		LocationRequest locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000)
 				.setMinUpdateIntervalMillis(5000) // 5 seconds
 				.build();
 
-		//if we don't get the permission, cannot go further
+
 		if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 			return;
 		}
 
-		// Request location updates from fusedLocationClient
-		// locationRequest defines update criteria (priority, interval)
-		// locationCallback handles the received location updates
-		// Looper.getMainLooper ensures the thread on which callBack should be executed
 		fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
 	}
 
@@ -202,93 +191,125 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
 	}
 
-	private void fetchNearbyRestaurantIds(double lat, double lng, String nextPageToken, int offsetIndex) {
+	private void fetchNearbyRestaurants(double lat, double lng, String nextPageToken, int offsetIndex) {
 		isLoading = true;
 		FeedApi feedApi = RetrofitService.getInstance().create(FeedApi.class);
 
-		Call<NearByShopIdsDTO> call = feedApi.getNearbyRestaurantsIdsHolder(lat, lng, nextPageToken, offsetIndex);
+		Call<List<ShopDTO>> call = feedApi.getNearbyRestaurants(lat, lng, nextPageToken, offsetIndex);
 
-		call.enqueue(new Callback<NearByShopIdsDTO>() {
+		call.enqueue(new Callback<List<ShopDTO>>() {
 			@Override
-			public void onResponse(Call<NearByShopIdsDTO> call, Response<NearByShopIdsDTO> response) {
+			public void onResponse(Call<List<ShopDTO>> call, Response<List<ShopDTO>> response) {
 				if (response.isSuccessful() && response.body() != null) {
-					//getting the list of placeIds
-					List<ShopPlaceIdDTO> placeIds = response.body().getResults();
+					List<ShopDTO> shops = response.body();
 
-					for(ShopPlaceIdDTO placeId : placeIds)
-					{
-						//fetch the detail of particular place
-						fetchRestaurantDetail(placeId.getPlaceId());
+					for (ShopDTO shop : shops) {
+						restaurantList.add(shop);
+						restaurantAdapter.notifyItemInserted(restaurantList.size() - 1);
 					}
 
-					//handle pagination
-					String nextPageToken = response.body().getNextPageToken();
-					if(nextPageToken != null){
+					if (nextPageToken != null) {
 						setupPagination(nextPageToken, lat, lng, offsetIndex + 1);
 					}
 
 				} else {
-					Toast.makeText(MainActivity.this, "Failed to fetch restaurant IDs: " + response.message(), Toast.LENGTH_SHORT).show();
-					Log.e(TAG, "Failed to fetch restaurant IDs: " + response.message());
+					Toast.makeText(MainActivity.this, "Failed to fetch restaurants: " + response.message(), Toast.LENGTH_SHORT).show();
+					Log.e(TAG, "Failed to fetch restaurants: " + response.message());
 				}
 				isLoading = false;
 			}
 
 			@Override
-			public void onFailure(Call<NearByShopIdsDTO> call, Throwable t) {
-				Toast.makeText(MainActivity.this, "Failed to fetch restaurant IDs", Toast.LENGTH_SHORT).show();
-				Log.e(TAG, "Error fetching restaurant IDs", t);
+			public void onFailure(Call<List<ShopDTO>> call, Throwable t) {
+				Toast.makeText(MainActivity.this, "Failed to fetch restaurants", Toast.LENGTH_SHORT).show();
+				Log.e(TAG, "Error fetching restaurants", t);
 				isLoading = false;
 			}
 		});
 	}
 
-	private void setupPagination(String nextPageToken, double lat, double lng, int offsetIndex)
-	{
+	private void setupPagination(String nextPageToken, double lat, double lng, int offsetIndex) {
 		recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
 			@Override
 			public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
 				super.onScrolled(recyclerView, dx, dy);
 				LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
 
-				//checking if last complete visible item position is equal to the restaurant List length
-				//means the user has already scrolled down to the provided list
-
-				if(!isLoading && layoutManager != null && layoutManager.findLastCompletelyVisibleItemPosition() == restaurantList.size()-1)
-				{
-					fetchNearbyRestaurantIds(lat, lng, nextPageToken, offsetIndex);
+				if (!isLoading && layoutManager != null && layoutManager.findLastCompletelyVisibleItemPosition() == restaurantList.size() - 1) {
+					fetchNearbyRestaurants(lat, lng, nextPageToken, offsetIndex);
 				}
-			}
-		});
-	}
-
-	private void fetchRestaurantDetail(String placeId) {
-		FeedApi feedApi = RetrofitService.getInstance().create(FeedApi.class);
-
-		Call<ShopDTO> call = feedApi.getRestaurantDetail(placeId);
-
-		call.enqueue(new Callback<ShopDTO>() {
-			@Override
-			public void onResponse(Call<ShopDTO> call, Response<ShopDTO> response) {
-				if (response.isSuccessful() && response.body() != null) {
-					restaurantList.add(response.body());
-					//notify the adapter that a new item has been inserted into the data set at a specified position
-					restaurantAdapter.notifyItemInserted(restaurantList.size() - 1);
-				}
-			}
-
-			@Override
-			public void onFailure(Call<ShopDTO> call, Throwable t) {
-				Toast.makeText(MainActivity.this, "Failed to fetch restaurant details", Toast.LENGTH_SHORT).show();
 			}
 		});
 	}
 
 	@Override
-	protected void onPause()
-	{
+	protected void onPause() {
 		super.onPause();
 		fusedLocationClient.removeLocationUpdates(locationCallback);
+	}
+
+	private void fetchAllDishes() {
+		Retrofit retrofit = new Retrofit.Builder()
+				.baseUrl("https://a867fedb-31a5-49ed-924f-cc87386050ec.mock.pstmn.io")
+				.addConverterFactory(GsonConverterFactory.create())
+				.build();
+
+		ApiService apiService = retrofit.create(ApiService.class);
+		Call<List<Dish>> call = apiService.getAllDishes();
+
+		call.enqueue(new Callback<List<Dish>>() {
+			@Override
+			public void onResponse(Call<List<Dish>> call, Response<List<Dish>> response) {
+				if (response.isSuccessful() && response.body() != null) {
+					dishList = response.body();
+
+					SharedPreferences.Editor editor = sharedPreferences.edit();
+					editor.putString("dishes", new Gson().toJson(dishList));
+					editor.apply();
+					setupViewPager();
+				} else {
+					Toast.makeText(MainActivity.this, "Failed to fetch dish list", Toast.LENGTH_SHORT).show();
+				}
+			}
+
+			@Override
+			public void onFailure(Call<List<Dish>> call, Throwable t) {
+				Toast.makeText(MainActivity.this, "Network Error", Toast.LENGTH_SHORT).show();
+				Log.e("MainActivity", "Network Error: ", t);
+			}
+		});
+	}
+
+	private void setupViewPager() {
+		ImageAdapter adapter = new ImageAdapter(this, dishList, this);
+		viewPager.setAdapter(adapter);
+
+		handler = new Handler(Looper.getMainLooper());
+		runnable = new Runnable() {
+			@Override
+			public void run() {
+				if (currentItem == dishList.size()) {
+					currentItem = 0;
+				}
+				viewPager.setCurrentItem(currentItem++, true);
+				handler.postDelayed(this, 2000);
+			}
+		};
+		handler.postDelayed(runnable, 2000);
+	}
+	@Override
+	public void onItemClick (int position) {
+		Dish selectedDish = dishList.get(position);
+		Intent intent = new Intent(MainActivity.this, DishDetailsActivity.class);
+		intent.putExtra("selectedDish", new Gson().toJson(selectedDish));
+		startActivity(intent);
+	}
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		if (handler != null) {
+			handler.removeCallbacks(runnable);
+		}
 	}
 
 	private void setupSpinners() {
@@ -331,19 +352,5 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 			}
 		});
 	}
-
-	@Override
-	public void onItemClick(int position) {
-		Intent intent = new Intent(MainActivity.this, DishDetailsActivity.class);
-		intent.putExtra("dishID", position + 1);
-		startActivity(intent);
-	}
-
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		if (handler != null) {
-			handler.removeCallbacks(runnable);
-		}
-	}
 }
+
