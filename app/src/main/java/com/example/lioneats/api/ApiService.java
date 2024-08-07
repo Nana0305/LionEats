@@ -1,6 +1,7 @@
 package com.example.lioneats.api;
 
 import com.example.lioneats.models.Dish;
+import com.example.lioneats.models.DishDetail;
 import com.example.lioneats.models.LoginRequest;
 import com.example.lioneats.models.LoginResponse;
 import com.example.lioneats.models.ML_feedback;
@@ -21,23 +22,23 @@ public interface ApiService {
 	Call<LoginResponse> login(@Body LoginRequest loginRequest);
 
 	@GET("api/user/{username}")
-	Call<User> getUser(@Path("username") String username);
+	Call<User> viewUser(@Path("username") String username);
 
-	@POST("api/registerUser")
+	@POST("api/register")
 	Call<ResponseBody> registerUser(@Body User user);
 
-	@POST("api/updateUser")
-	Call<ResponseBody> updateUser(@Body User user);
+	@POST("api/user/{username}/update")
+	Call<ResponseBody> updateUser(@Path("username") String username, @Body User user);
 
-	@GET("api/alldishes")
+	@GET("api/dishes")
 	Call<List<Dish>> getAllDishes();
 
-	@GET("api/dish/{id}")
-	Call<Dish> getDishById(@Path("id") int id);
+	@GET("api/dishes/{id}")
+	Call<DishDetail> getDishById(@Path("id") int id);
 
-	@POST("/api/ML")
+	@POST("/api/upload/result")
 	Call<ResponseBody> dishResult(@Body MultipartBody.Part image);
 
-	@POST("api/feedback")
+	@POST("api/upload/result/feedback")
 	Call<ResponseBody> feedback(@Body ML_feedback feedback);
 }

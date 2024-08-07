@@ -35,36 +35,50 @@
         android:gravity="center"
         android:textSize="30sp"
         android:textStyle="bold" />
-
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
     <TextView
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
         android:layout_marginTop="10dp"
         android:textSize="20sp"
         android:textColor="#0000FF"
-        android:text="View dishDetail details"
+        android:text="View dish"
         android:linksClickable="true"
         android:autoLink="web" />
-
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:layout_marginTop="10dp"
+        android:textSize="20sp"
+        android:textColor="#0000FF"
+        android:text="View shops"
+        android:linksClickable="true"
+        android:autoLink="web" />
+</LinearLayout>
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="20dp"
         android:text="Not the right dishDetail? Please let us know"
-        android:textSize="20sp" />
-
-    <EditText
-        android:id="@+id/dishName"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/edit_text_background"
-        android:hint="Enter the correct dishDetail name"
-        android:padding="10dp" />
-
+        android:textSize="18sp" />
+    <Spinner
+            android:id="@+id/spinnerDishName"
+            android:layout_width="match_parent"
+            android:layout_marginTop="10dp"
+            android:layout_height="50dp"
+            android:background="@drawable/spinner_background"/>
     <EditText
         android:id="@+id/remarks"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="100dp"
+        android:gravity="top"
         android:background="@drawable/edit_text_background"
         android:hint="Enter your remarks"
         android:padding="10dp" />
@@ -73,7 +87,8 @@
         android:id="@+id/submitBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Submit"
+        android:text="Submit Feedback"
+        android:textSize="20sp"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="20dp" />
 

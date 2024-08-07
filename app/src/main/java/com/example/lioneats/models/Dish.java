@@ -1,15 +1,17 @@
 package com.example.lioneats.models;
 
-import java.util.List;
+import java.util.Objects;
 
 public class Dish {
 	private int id;
 	private String name;
-	private List<String> allergies;
-	private String ingredients;
-	private String history;
-	private String description;
 	private String imageUrl;
+
+	public Dish(int id, String name, String imageUrl) {
+		this.id = id;
+		this.name = name;
+		this.imageUrl = imageUrl;
+	}
 
 	public int getId() {
 		return id;
@@ -27,43 +29,33 @@ public class Dish {
 		this.name = name;
 	}
 
-	public List<String> getAllergies() {
-		return allergies;
-	}
-
-	public void setAllergies(List<String> allergies) {
-		this.allergies = allergies;
-	}
-
-	public String getIngredients() {
-		return ingredients;
-	}
-
-	public void setIngredients(String ingredients) {
-		this.ingredients = ingredients;
-	}
-
-	public String getHistory() {
-		return history;
-	}
-
-	public void setHistory(String history) {
-		this.history = history;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
 	public String getImageUrl() {
 		return imageUrl;
 	}
 
 	public void setImageUrl(String imageUrl) {
 		this.imageUrl = imageUrl;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		Dish dish = (Dish) o;
+		return id == dish.id;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
+	}
+
+	@Override
+	public String toString() {
+		return "Dish{" +
+				"id=" + id +
+				", name='" + name + '\'' +
+				", imageUrl='" + imageUrl + '\'' +
+				'}';
 	}
 }

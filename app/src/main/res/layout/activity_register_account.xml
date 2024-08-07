@@ -11,12 +11,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:gravity="center"
-            android:src="@drawable/logo" />
 
+        <!-- Name -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -38,6 +34,7 @@
                 android:textSize="15sp"/>
         </LinearLayout>
 
+        <!-- Username -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -59,6 +56,7 @@
                 android:textSize="15sp"/>
         </LinearLayout>
 
+        <!-- Password -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -81,6 +79,7 @@
                 android:inputType="textPassword"/>
         </LinearLayout>
 
+        <!-- Email -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -103,6 +102,7 @@
                 android:inputType="textEmailAddress"/>
         </LinearLayout>
 
+        <!-- Age -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -149,6 +149,7 @@
             </RadioGroup>
         </LinearLayout>
 
+        <!-- Gender -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -183,6 +184,7 @@
             </RadioGroup>
         </LinearLayout>
 
+        <!-- Country -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -204,6 +206,7 @@
                 android:textSize="15sp"/>
         </LinearLayout>
 
+        <!-- Dish Preferences -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -214,163 +217,19 @@
                 android:layout_height="wrap_content"
                 android:text="Dish Preferences:"
                 android:textSize="18sp"
-                android:textStyle="bold"/>
-            <LinearLayout
+                android:textStyle="bold" />
+
+            <!-- Dynamic dish preferences using GridLayout -->
+            <GridLayout
+                android:id="@+id/dishContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="6"
-                android:gravity="center">
-
-                <!-- Dish Option 1 -->
-                <LinearLayout
-                    android:id="@+id/dishOption1"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:padding="2dp"
-                    android:background="@drawable/selector_background"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="50dp"
-                        android:layout_marginBottom="4dp"
-                        android:src="@drawable/dish_image_1"
-                        android:contentDescription="Chicken rice" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:text="Chicken rice"
-                        android:textSize="15sp"/>
-                </LinearLayout>
-
-                <!-- Dish Option 2 -->
-                <LinearLayout
-                    android:id="@+id/dishOption2"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:padding="2dp"
-                    android:background="@drawable/selector_background"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="50dp"
-                        android:layout_marginBottom="4dp"
-                        android:src="@drawable/dish_image_2"
-                        android:contentDescription="Chilli crab"/>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:text="Chilli crab"
-                        android:textSize="15sp"/>
-                </LinearLayout>
-
-                <!-- Dish Option 3 -->
-                <LinearLayout
-                    android:id="@+id/dishOption3"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:padding="2dp"
-                    android:background="@drawable/selector_background"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="50dp"
-                        android:layout_marginBottom="4dp"
-                        android:src="@drawable/dish_image_3"
-                        android:contentDescription="Cendol" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:text="Cendol"
-                        android:textSize="15sp"/>
-                </LinearLayout>
-
-                <!-- Dish Option 4 -->
-                <LinearLayout
-                    android:id="@+id/dishOption4"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:padding="2dp"
-                    android:background="@drawable/selector_background"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="50dp"
-                        android:layout_marginBottom="4dp"
-                        android:src="@drawable/dish_image_4"
-                        android:contentDescription="Chai tow kway"/>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:text="Chai tow kway"
-                        android:textSize="15sp"/>
-                </LinearLayout>
-
-                <!-- Dish Option 5 with Arrow Button -->
-                <LinearLayout
-                    android:id="@+id/dishOption5"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:padding="2dp"
-                    android:background="@drawable/selector_background"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="50dp"
-                        android:layout_marginBottom="4dp"
-                        android:src="@drawable/dish_image_5"
-                        android:contentDescription="Fish head curry"/>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:text="Fish head curry"
-                        android:textSize="15sp"/>
-                </LinearLayout>
-
-                <!-- Forward Arrow Button -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:padding="2dp">
-                    <ImageButton
-                        android:id="@+id/showMoreBtn"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@drawable/ic_arrow_forward"
-                        android:background="?attr/selectableItemBackground"
-                        android:contentDescription="Show More"/>
-                </LinearLayout>
-            </LinearLayout>
+                android:columnCount="5"
+                android:orientation="horizontal">
+            </GridLayout>
         </LinearLayout>
 
+        <!-- Spicy Preference -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -405,6 +264,7 @@
             </RadioGroup>
         </LinearLayout>
 
+        <!-- Budget -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -446,13 +306,13 @@
             </RadioGroup>
         </LinearLayout>
 
+        <!-- Allergies -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:layout_marginTop="5dp">
-
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -460,7 +320,6 @@
                 android:text="Allergy "
                 android:textSize="18sp"
                 android:textStyle="bold"/>
-
             <androidx.gridlayout.widget.GridLayout
                 android:id="@+id/allergyOptionsGrid"
                 android:layout_width="0dp"
@@ -469,49 +328,42 @@
                 app:columnCount="4"
                 app:rowCount="2"
                 app:orientation="horizontal">
-
                 <CheckBox
                     android:id="@+id/allergyOption1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Gluten"
                     android:textSize="15sp"/>
-
                 <CheckBox
                     android:id="@+id/allergyOption2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Seafood"
                     android:textSize="15sp"/>
-
                 <CheckBox
                     android:id="@+id/allergyOption3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Dairy"
                     android:textSize="15sp"/>
-
                 <CheckBox
                     android:id="@+id/allergyOption4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Egg"
                     android:textSize="15sp"/>
-
                 <CheckBox
                     android:id="@+id/allergyOption5"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Peanut"
                     android:textSize="15sp"/>
-
                 <CheckBox
                     android:id="@+id/allergyOption6"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Sesame"
                     android:textSize="15sp"/>
-
                 <CheckBox
                     android:id="@+id/allergyOption7"
                     android:layout_width="wrap_content"
@@ -519,9 +371,9 @@
                     android:text="Soy"
                     android:textSize="15sp"/>
             </androidx.gridlayout.widget.GridLayout>
-
         </LinearLayout>
 
+        <!-- Register Button -->
         <Button
             android:id="@+id/registerBtn"
             android:layout_width="wrap_content"
@@ -531,6 +383,6 @@
             android:text="Register"
             android:textSize="18sp"/>
     </LinearLayout>
-
 </ScrollView>
+
 

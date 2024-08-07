@@ -8,6 +8,14 @@ public class ML_feedback {
 	private String dishName;
 	private String remarks;
 
+	public MultipartBody.Part getImage() {
+		return image;
+	}
+
+	public void setImage(MultipartBody.Part image) {
+		this.image = image;
+	}
+
 	public String getResult() {
 		return result;
 	}
@@ -30,13 +38,5 @@ public class ML_feedback {
 
 	public void setRemarks(String remarks) {
 		this.remarks = remarks;
-	}
-
-	public MultipartBody.Part getImage() {
-		return image;
-	}
-
-	public void setImage(MultipartBody.Part image) {
-		this.image = image;
 	}
 }

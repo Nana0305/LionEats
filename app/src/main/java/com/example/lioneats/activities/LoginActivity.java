@@ -16,6 +16,8 @@ import com.example.lioneats.R;
 import com.example.lioneats.api.ApiService;
 import com.example.lioneats.models.LoginRequest;
 import com.example.lioneats.models.LoginResponse;
+import com.example.lioneats.utils.RetrofitClient;
+
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -54,12 +56,7 @@ public class LoginActivity extends AppCompatActivity {
 		authenticateUser(username, password);
 	}
 	private void authenticateUser(String username, String password) {
-		Retrofit retrofit = new Retrofit.Builder()
-				.baseUrl("https://a867fedb-31a5-49ed-924f-cc87386050ec.mock.pstmn.io")
-				.addConverterFactory(GsonConverterFactory.create())
-				.build();
-
-		ApiService apiService = retrofit.create(ApiService.class);
+		ApiService apiService = RetrofitClient.getApiService();
 		Call<LoginResponse> call = apiService.login(new LoginRequest(username, password));
 
 		call.enqueue(new Callback<LoginResponse>() {

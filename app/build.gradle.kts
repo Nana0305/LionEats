@@ -43,7 +43,7 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation("com.google.code.gson:gson:2.8.8")
-    implementation("com.squareup.picasso:picasso:2.71828")
+    implementation("com.squareup.picasso:picasso:2.8")
     testImplementation(libs.junit)
     testImplementation("com.squareup.okhttp3:mockwebserver:4.9.1")
     androidTestImplementation(libs.ext.junit)

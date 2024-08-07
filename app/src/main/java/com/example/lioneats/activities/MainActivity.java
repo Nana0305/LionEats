@@ -30,6 +30,7 @@ import com.example.lioneats.dtos.ShopDTO;
 import com.example.lioneats.dtos.ShopPlaceIdDTO;
 import com.example.lioneats.fragments.HeaderFragment;
 import com.example.lioneats.models.Dish;
+import com.example.lioneats.utils.RetrofitClient;
 import com.example.lioneats.utils.RetrofitService;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -54,12 +55,12 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity implements ImageAdapter.OnItemClickListener {
 	private ViewPager2 viewPager;
-	//private final int[] images = {R.drawable.dish_image_1, R.drawable.dish_image_2, R.drawable.dish_image_3, R.drawable.dish_image_4, R.drawable.dish_image_5, R.drawable.dish_image_6, R.drawable.dish_image_7, R.drawable.dish_image_8, R.drawable.dish_image_9, R.drawable.dish_image_10};
 	private Handler handler;
 	private Runnable runnable;
 	private int currentItem = 0;
 	private List<Dish> dishList = new ArrayList<>();
-	private SharedPreferences sharedPreferences;
+	private SharedPreferences userSessionPreferences;
+	private SharedPreferences dishListPreferences;
 
 	private String selectedDish;
 	private String selectedLocation;
@@ -88,9 +89,10 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
-		String username = sharedPreferences.getString("username", null);
-		// Add HeaderFragment to the activity
+		userSessionPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
+		dishListPreferences = getSharedPreferences("dish_list", MODE_PRIVATE);
+
+		String username = userSessionPreferences.getString("username", null);
 		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 		transaction.replace(R.id.headerFragmentContainer, new HeaderFragment());
 		transaction.commit();
@@ -103,13 +105,9 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 
 		// Carousel with dish images, click to dish details
 		viewPager = findViewById(R.id.viewPager);
-		String dishesJson = sharedPreferences.getString("dishes", null);
-		if (dishesJson != null) {
-			dishList = new Gson().fromJson(dishesJson, new TypeToken<List<Dish>>() {}.getType());
-			setupViewPager();
-		} else {
-			fetchAllDishes();
-		}
+		loadDishesFromPreferences();
+
+		fetchAndUpdateDishes();
 
 		// Recycler view of shops
 		recyclerView = findViewById(R.id.recyclerView);
@@ -248,25 +246,32 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		fusedLocationClient.removeLocationUpdates(locationCallback);
 	}
 
-	private void fetchAllDishes() {
-		Retrofit retrofit = new Retrofit.Builder()
-				.baseUrl("https://a867fedb-31a5-49ed-924f-cc87386050ec.mock.pstmn.io")
-				.addConverterFactory(GsonConverterFactory.create())
-				.build();
-
-		ApiService apiService = retrofit.create(ApiService.class);
+	private void loadDishesFromPreferences() {
+		String dishesJson = dishListPreferences.getString("dishes", null);
+		if (dishesJson != null) {
+			dishList = new Gson().fromJson(dishesJson, new TypeToken<List<Dish>>() {}.getType());
+			setupViewPager();
+		} else {
+			fetchAndUpdateDishes();
+		}
+	}
+	private void fetchAndUpdateDishes() {
+		ApiService apiService = RetrofitClient.getApiService();
 		Call<List<Dish>> call = apiService.getAllDishes();
 
 		call.enqueue(new Callback<List<Dish>>() {
 			@Override
 			public void onResponse(Call<List<Dish>> call, Response<List<Dish>> response) {
 				if (response.isSuccessful() && response.body() != null) {
-					dishList = response.body();
-
-					SharedPreferences.Editor editor = sharedPreferences.edit();
-					editor.putString("dishes", new Gson().toJson(dishList));
-					editor.apply();
-					setupViewPager();
+					List<Dish> updatedDishList = response.body();
+					logDishList(updatedDishList);
+					if (!updatedDishList.equals(dishList)) {
+						dishList = updatedDishList;
+						SharedPreferences.Editor dishEditor = dishListPreferences.edit();
+						dishEditor.putString("dishes", new Gson().toJson(dishList));
+						dishEditor.apply();
+						setupViewPager();
+					}
 				} else {
 					Toast.makeText(MainActivity.this, "Failed to fetch dish list", Toast.LENGTH_SHORT).show();
 				}
@@ -278,6 +283,15 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 				Log.e("MainActivity", "Network Error: ", t);
 			}
 		});
+	}
+	private void logDishList(List<Dish> dishList) {
+		if (dishList != null && !dishList.isEmpty()) {
+			for (Dish dish : dishList) {
+				Log.d("DishList", "ID: " + dish.getId() + ", Name: " + dish.getName() + ", Image URL: " + dish.getImageUrl());
+			}
+		} else {
+			Log.d("DishList", "Dish list is empty or null.");
+		}
 	}
 
 	private void setupViewPager() {
@@ -301,7 +315,8 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	public void onItemClick (int position) {
 		Dish selectedDish = dishList.get(position);
 		Intent intent = new Intent(MainActivity.this, DishDetailsActivity.class);
-		intent.putExtra("selectedDish", new Gson().toJson(selectedDish));
+		intent.putExtra("dishID", selectedDish.getId());
+		intent.putExtra("dishImageUrl", selectedDish.getImageUrl());
 		startActivity(intent);
 	}
 	@Override

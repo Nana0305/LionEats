@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -40,6 +41,7 @@ import com.example.lioneats.activities.RegisterAccountActivity;
 import com.example.lioneats.activities.UpdateUserActivity;
 import com.example.lioneats.api.ApiService;
 import com.example.lioneats.models.ML_feedback;
+import com.example.lioneats.utils.RetrofitClient;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
@@ -69,7 +71,8 @@ public class HeaderFragment extends Fragment {
 	private TextView actionBtn;
 	private ImageButton cameraBtn;
 	private ImageView logoBtn;
-	private SharedPreferences sharedPreferences;
+	private SharedPreferences userSessionPreferences;
+	private SharedPreferences dishListPreferences;
 
 	@Nullable
 	@Override
@@ -81,9 +84,10 @@ public class HeaderFragment extends Fragment {
 		cameraBtn = view.findViewById(R.id.cameraBtn);
 		logoBtn = view.findViewById(R.id.logoBtn);
 
-		sharedPreferences = getActivity().getSharedPreferences("user_session", getActivity().MODE_PRIVATE);
-		String username = sharedPreferences.getString("username", null);
+		userSessionPreferences = getActivity().getSharedPreferences("user_session", getActivity().MODE_PRIVATE);
+		dishListPreferences = getActivity().getSharedPreferences("dish_list", getActivity().MODE_PRIVATE);
 
+		String username = userSessionPreferences.getString("username", null);
 		if (username != null) {
 			usernameText.setText(username);
 			usernameText.setClickable(true);
@@ -107,20 +111,21 @@ public class HeaderFragment extends Fragment {
 			cameraBtn.setOnClickListener(v -> showLoginDialog());
 		}
 		logoBtn.setClickable(true);
-		logoBtn.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Intent intent = new Intent(getActivity(), MainActivity.class);
-				startActivity(intent);
-			}
+		logoBtn.setOnClickListener(v -> {
+			Intent intent = new Intent(getActivity(), MainActivity.class);
+			startActivity(intent);
 		});
 		return view;
 	}
 
 	private void logout() {
-		SharedPreferences.Editor editor = sharedPreferences.edit();
-		editor.clear();
-		editor.apply();
+		SharedPreferences.Editor sessionEditor = userSessionPreferences.edit();
+		sessionEditor.clear();
+		sessionEditor.apply();
+
+		SharedPreferences.Editor dishEditor = dishListPreferences.edit();
+		dishEditor.clear();
+		dishEditor.apply();
 
 		Intent intent = new Intent(getActivity(), MainActivity.class);
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -129,24 +134,34 @@ public class HeaderFragment extends Fragment {
 	}
 
 	private void showLoginDialog() {
+		LayoutInflater inflater = getLayoutInflater();
+		View dialogView = inflater.inflate(R.layout.dialog_login, null);
+		Button positiveButton = dialogView.findViewById(R.id.positiveButton);
+		Button negativeButton = dialogView.findViewById(R.id.negativeButton);
+
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-		builder.setTitle("Login for dish classifier function")
-				.setMessage("No Account yet? Register Now! ")
-				.setPositiveButton("Login", new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						Intent intent = new Intent(getActivity(), LoginActivity.class);
-						startActivity(intent);
-					}
-				})
-				.setNegativeButton("Register Account", new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						Intent intent = new Intent(getActivity(), RegisterAccountActivity.class);
-						startActivity(intent);
-					}
-				});
-		builder.create().show();
+		builder.setView(dialogView)
+				.setCancelable(true);
+		AlertDialog dialog = builder.create();
+		dialog.show();
+
+		positiveButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(getActivity(), LoginActivity.class);
+				startActivity(intent);
+				dialog.dismiss();
+			}
+		});
+
+		negativeButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(getActivity(), RegisterAccountActivity.class);
+				startActivity(intent);
+				dialog.dismiss();
+			}
+		});
 	}
 
 	private void showImageSourceDialog() {
@@ -237,12 +252,7 @@ public class HeaderFragment extends Fragment {
 			RequestBody requestFile = RequestBody.create(MediaType.parse("image/jpeg"), bytes);
 			image = MultipartBody.Part.createFormData("image", "image.jpg", requestFile);
 
-			Retrofit retrofit = new Retrofit.Builder()
-					.baseUrl("https://a867fedb-31a5-49ed-924f-cc87386050ec.mock.pstmn.io")
-					.addConverterFactory(GsonConverterFactory.create())
-					.build();
-
-			ApiService apiService = retrofit.create(ApiService.class);
+			ApiService apiService = RetrofitClient.getApiService();
 			Call<ResponseBody> call = apiService.dishResult(image);
 
 			call.enqueue(new Callback<ResponseBody>() {
@@ -297,16 +307,5 @@ public class HeaderFragment extends Fragment {
 			e.printStackTrace();
 			Toast.makeText(getActivity(), "Failed to open image", Toast.LENGTH_SHORT).show();
 		}
-	}
-
-	private String getRealPathFromURI(Uri contentUri) {
-		String[] proj = {MediaStore.Images.Media.DATA};
-		CursorLoader loader = new CursorLoader(getActivity(), contentUri, proj, null, null, null);
-		Cursor cursor = loader.loadInBackground();
-		int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-		cursor.moveToFirst();
-		String result = cursor.getString(column_index);
-		cursor.close();
-		return result;
 	}
 }

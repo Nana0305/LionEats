@@ -10,7 +10,7 @@ public class User {
 	private int ageGroup;
 	private boolean isMale;
 	private String country;
-	private List<String> dishPref;
+	private List<Dish> dishPref;
 	private boolean likesSpicy;
 	private String budget;
 	private List<String> allergy;
@@ -71,11 +71,11 @@ public class User {
 		this.country = country;
 	}
 
-	public List<String> getDishPref() {
+	public List<Dish> getDishPref() {
 		return dishPref;
 	}
 
-	public void setDishPref(List<String> dishPref) {
+	public void setDishPref(List<Dish> dishPref) {
 		this.dishPref = dishPref;
 	}
 
