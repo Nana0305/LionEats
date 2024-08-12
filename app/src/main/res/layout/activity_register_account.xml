@@ -116,37 +116,14 @@
                 android:text="Age "
                 android:textSize="18sp"
                 android:textStyle="bold"/>
-            <RadioGroup
-                android:id="@+id/ageOptions"
+            <EditText
+                android:id="@+id/ageText"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:layout_weight="3"
-                android:orientation="horizontal">
-                <RadioButton
-                    android:id="@+id/ageOption1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="&lt;21"
-                    android:textSize="15sp"/>
-                <RadioButton
-                    android:id="@+id/ageOption2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="21~35"
-                    android:textSize="15sp"/>
-                <RadioButton
-                    android:id="@+id/ageOption3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="35~60"
-                    android:textSize="15sp"/>
-                <RadioButton
-                    android:id="@+id/ageOption4"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="&gt;60"
-                    android:textSize="15sp"/>
-            </RadioGroup>
+                android:hint="Enter age"
+                android:textSize="15sp"
+                android:inputType="number"/>
         </LinearLayout>
 
         <!-- Gender -->
@@ -160,7 +137,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Gender "
+                android:text="Gender"
                 android:textSize="18sp"
                 android:textStyle="bold"/>
             <RadioGroup
@@ -173,13 +150,19 @@
                     android:id="@+id/genderOption1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Male "
+                    android:text="Male"
                     android:textSize="15sp"/>
                 <RadioButton
                     android:id="@+id/genderOption2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Female"
+                    android:textSize="15sp"/>
+                <RadioButton
+                    android:id="@+id/genderOption3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Other"
                     android:textSize="15sp"/>
             </RadioGroup>
         </LinearLayout>
@@ -206,64 +189,6 @@
                 android:textSize="15sp"/>
         </LinearLayout>
 
-        <!-- Dish Preferences -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="5dp">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Dish Preferences:"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <!-- Dynamic dish preferences using GridLayout -->
-            <GridLayout
-                android:id="@+id/dishContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:columnCount="5"
-                android:orientation="horizontal">
-            </GridLayout>
-        </LinearLayout>
-
-        <!-- Spicy Preference -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:layout_marginTop="5dp">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1.2"
-                android:text="Can you take the heat? "
-                android:textSize="18sp"
-                android:textStyle="bold"/>
-            <RadioGroup
-                android:id="@+id/spicyOptions"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1.8"
-                android:orientation="horizontal">
-                <RadioButton
-                    android:id="@+id/spicyOption1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Of course"
-                    android:textSize="15sp"/>
-                <RadioButton
-                    android:id="@+id/spicyOption2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Not so much"
-                    android:textSize="15sp"/>
-            </RadioGroup>
-        </LinearLayout>
-
         <!-- Budget -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -275,7 +200,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Budget "
+                android:text="Budget"
                 android:textSize="18sp"
                 android:textStyle="bold"/>
             <RadioGroup
@@ -283,25 +208,59 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="3"
-                android:gravity="center"
                 android:orientation="horizontal">
                 <RadioButton
                     android:id="@+id/budgetOption1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Low"
+                    android:text="LOW"
                     android:textSize="15sp"/>
                 <RadioButton
                     android:id="@+id/budgetOption2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Medium"
+                    android:text="MEDIUM"
                     android:textSize="15sp"/>
                 <RadioButton
                     android:id="@+id/budgetOption3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="High"
+                    android:text="HIGH"
+                    android:textSize="15sp"/>
+            </RadioGroup>
+        </LinearLayout>
+
+        <!-- SpicyOption -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_marginTop="5dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.2"
+                android:text="Likes Spicy? "
+                android:textSize="18sp"
+                android:textStyle="bold"/>
+            <RadioGroup
+                android:id="@+id/spicyOptions"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2.8"
+                android:orientation="horizontal">
+                <RadioButton
+                    android:id="@+id/spicyOption1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Yes, of course!"
+                    android:textSize="15sp"/>
+                <RadioButton
+                    android:id="@+id/spicyOption2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Not so much"
                     android:textSize="15sp"/>
             </RadioGroup>
         </LinearLayout>
@@ -316,73 +275,64 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Allergy "
+                android:layout_weight="0.7"
+                android:text="Allergy"
                 android:textSize="18sp"
                 android:textStyle="bold"/>
             <androidx.gridlayout.widget.GridLayout
                 android:id="@+id/allergyOptionsGrid"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="4"
+                android:layout_weight="4.3"
                 app:columnCount="4"
-                app:rowCount="2"
                 app:orientation="horizontal">
-                <CheckBox
-                    android:id="@+id/allergyOption1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Gluten"
-                    android:textSize="15sp"/>
-                <CheckBox
-                    android:id="@+id/allergyOption2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Seafood"
-                    android:textSize="15sp"/>
-                <CheckBox
-                    android:id="@+id/allergyOption3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Dairy"
-                    android:textSize="15sp"/>
-                <CheckBox
-                    android:id="@+id/allergyOption4"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Egg"
-                    android:textSize="15sp"/>
-                <CheckBox
-                    android:id="@+id/allergyOption5"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Peanut"
-                    android:textSize="15sp"/>
-                <CheckBox
-                    android:id="@+id/allergyOption6"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Sesame"
-                    android:textSize="15sp"/>
-                <CheckBox
-                    android:id="@+id/allergyOption7"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Soy"
-                    android:textSize="15sp"/>
+            </androidx.gridlayout.widget.GridLayout>
+        </LinearLayout>
+
+        <!-- Dish Preferences -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="5dp">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Dish Preferences:"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+            <androidx.gridlayout.widget.GridLayout
+                android:id="@+id/dishContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:columnCount="5"
+                app:orientation="horizontal">
             </androidx.gridlayout.widget.GridLayout>
         </LinearLayout>
 
         <!-- Register Button -->
-        <Button
-            android:id="@+id/registerBtn"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_margin="10dp"
-            android:text="Register"
-            android:textSize="18sp"/>
+            android:orientation="horizontal"
+            android:gravity="center">
+            <Button
+                android:id="@+id/homeBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="Home"
+                android:textSize="18sp" />
+            <Button
+                android:id="@+id/registerBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="10dp"
+                android:text="Register"
+                android:textSize="18sp"/>
+        </LinearLayout>
+
     </LinearLayout>
 </ScrollView>
-
 

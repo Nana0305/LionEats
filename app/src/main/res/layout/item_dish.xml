@@ -6,7 +6,7 @@
     android:gravity="center"
     android:padding="4dp"
     android:background="@drawable/selector_background"
-    android:clickable="true"
+    android:clickable="false"
     android:focusable="true">
 
     <ImageView

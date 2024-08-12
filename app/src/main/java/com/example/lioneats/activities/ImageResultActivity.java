@@ -31,8 +31,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
-import org.w3c.dom.Text;
-
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +41,6 @@ import retrofit2.Callback;
 
 public class ImageResultActivity extends AppCompatActivity {
 	private ML_feedback feedback;
-	private Uri imageUri;
 	private ImageView imageView;
 	private TextView resultTextView;
 	private Spinner spinnerDishName;
@@ -67,21 +64,16 @@ public class ImageResultActivity extends AppCompatActivity {
 		submitBtn = findViewById(R.id.submitBtn);
 
 		List<String> dishNames = getDishNames();
-		// Create an ArrayAdapter using the dish names and a default spinner layout
 		ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
 				android.R.layout.simple_spinner_item, dishNames);
 
-		// Specify the layout to use when the list of choices appears
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-		// Apply the adapter to the spinner
 		spinnerDishName.setAdapter(adapter);
 
-		// Set a listener for when an item is selected
 		spinnerDishName.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 			@Override
 			public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-				// Get selected item
 				selectedDishName = parentView.getItemAtPosition(position).toString();
 				Toast.makeText(ImageResultActivity.this, "Selected: " + selectedDishName, Toast.LENGTH_SHORT).show();
 			}
@@ -93,17 +85,17 @@ public class ImageResultActivity extends AppCompatActivity {
 		});
 
 		Intent intent = getIntent();
-		String feedbackJson = intent.getStringExtra("feedback");
+		String feedbackJson = intent.getStringExtra("feedBack");
 		if (feedbackJson != null) {
 			Gson gson = new Gson();
 			feedback = gson.fromJson(feedbackJson, ML_feedback.class);
 
 			String imageUriString = intent.getStringExtra("imageUri");
 			if (imageUriString != null) {
-				imageUri = Uri.parse(imageUriString);
+				Uri imageUri = Uri.parse(imageUriString);
 				imageView.setImageURI(imageUri);
 			}
-			resultTextView.setText(feedback.getResult());
+			resultTextView.setText(feedback.getMl_result());
 		}
 		submitBtn.setOnClickListener(v -> submitFeedback());
 	}
@@ -112,15 +104,13 @@ public class ImageResultActivity extends AppCompatActivity {
 		SharedPreferences sharedPreferences = getSharedPreferences("dish_list", MODE_PRIVATE);
 		String jsonDishes = sharedPreferences.getString("dishes", "");
 
-		// Parse JSON string
 		Gson gson = new Gson();
 		Type listType = new TypeToken<List<Dish>>() {}.getType();
 		List<Dish> dishList = gson.fromJson(jsonDishes, listType);
 
-		// Extract dish names
 		List<String> dishNames = new ArrayList<>();
 		for (Dish dish : dishList) {
-			dishNames.add(dish.getName());
+			dishNames.add(dish.getDishDetailName());
 		}
 		return dishNames;
 	}
@@ -129,7 +119,7 @@ public class ImageResultActivity extends AppCompatActivity {
 			String remarks = remarksEditText.getText().toString();
 
 			if (!selectedDishName.isEmpty()) {
-				feedback.setDishName(selectedDishName);
+				feedback.setUserDish(selectedDishName);
 				feedback.setRemarks(remarks);
 
 				Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -137,7 +127,7 @@ public class ImageResultActivity extends AppCompatActivity {
 				Log.d("ImageResultActivity", "Feedback JSON: " + feedbackJson);
 
 				ApiService apiService = RetrofitClient.getApiService();
-				Call<ResponseBody> call = apiService.feedback(feedback);
+				Call<ResponseBody> call = apiService.submitFeedback(feedback);
 				call.enqueue(new Callback<ResponseBody>() {
 					@Override
 					public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
@@ -152,7 +142,7 @@ public class ImageResultActivity extends AppCompatActivity {
 					@Override
 					public void onFailure(Call<ResponseBody> call, Throwable t) {
 						Log.e("ImageResultActivity", "Feedback submission error: " + t.getMessage());
-						Toast.makeText(ImageResultActivity.this, "Failed to submit feedback", Toast.LENGTH_SHORT).show();
+						Toast.makeText(ImageResultActivity.this, "Failed to submit submitFeedback", Toast.LENGTH_SHORT).show();
 					}
 				});
 			} else {
@@ -163,11 +153,11 @@ public class ImageResultActivity extends AppCompatActivity {
 		LayoutInflater inflater = getLayoutInflater();
 		View dialogView = inflater.inflate(R.layout.dialog_custom, null);
 		TextView dialogMessage = dialogView.findViewById(R.id.dialogMessage);
-		dialogMessage.setText("Thank you for your feedback!");
+		dialogMessage.setText("Thank you for your submitFeedback!");
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setView(dialogView);
-		builder.setCancelable(false); // Make the dialog non-cancelable
+		builder.setCancelable(false);
 
 		AlertDialog dialog = builder.create();
 		dialog.show();

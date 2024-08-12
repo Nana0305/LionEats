@@ -1,6 +1,5 @@
 package com.example.lioneats.activities;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -14,27 +13,24 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.lioneats.R;
 import com.example.lioneats.api.ApiService;
-import com.example.lioneats.models.LoginRequest;
-import com.example.lioneats.models.LoginResponse;
+import com.example.lioneats.models.User;
 import com.example.lioneats.utils.RetrofitClient;
 
 import retrofit2.Call;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.Callback;
 
 public class LoginActivity extends AppCompatActivity {
 	private Button loginBtn;
 	private EditText usernameEditText;
 	private EditText passwordEditText;
-
 	private TextView registerAcctBtn;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_login);
+
 		loginBtn = findViewById(R.id.loginBtn);
 		usernameEditText = findViewById(R.id.username);
 		passwordEditText = findViewById(R.id.password);
@@ -56,14 +52,18 @@ public class LoginActivity extends AppCompatActivity {
 		authenticateUser(username, password);
 	}
 	private void authenticateUser(String username, String password) {
+		User user = new User();
+		user.setUsername(username);
+		user.setPassword(password);
 		ApiService apiService = RetrofitClient.getApiService();
-		Call<LoginResponse> call = apiService.login(new LoginRequest(username, password));
+		Call<Long> call = apiService.login(user);
 
-		call.enqueue(new Callback<LoginResponse>() {
+		call.enqueue(new Callback<Long>() {
 			@Override
-			public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
+			public void onResponse(Call<Long> call, Response<Long> response) {
 				if (response.isSuccessful() && response.body() != null) {
-					saveUserSession(response.body());
+					Long userId = response.body();
+					saveUserSession(userId, username);
 					navigateToHome();
 				} else {
 					Toast.makeText(LoginActivity.this, "Login failed", Toast.LENGTH_SHORT).show();
@@ -71,17 +71,17 @@ public class LoginActivity extends AppCompatActivity {
 			}
 
 			@Override
-			public void onFailure(Call<LoginResponse> call, Throwable t) {
+			public void onFailure(Call<Long> call, Throwable t) {
 				Toast.makeText(LoginActivity.this, "Network error", Toast.LENGTH_SHORT).show();
 			}
 		});
 	}
 
-	private void saveUserSession(LoginResponse loginResponse) {
+	private void saveUserSession(Long userId, String username) {
 		SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
 		SharedPreferences.Editor editor = sharedPreferences.edit();
-		editor.putString("token", loginResponse.getToken());
-		editor.putString("username", loginResponse.getUsername());
+		editor.putLong("user_id", userId);
+		editor.putString("username", username);
 		editor.apply();
 	}
 

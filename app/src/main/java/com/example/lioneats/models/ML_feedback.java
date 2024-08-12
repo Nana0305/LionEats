@@ -1,35 +1,33 @@
 package com.example.lioneats.models;
 
-import okhttp3.MultipartBody;
-
 public class ML_feedback {
-	private MultipartBody.Part image;
-	private String result;
-	private String dishName;
+	private String imageBlobUrl;
+	private String ml_result;
+	private String userDish;
 	private String remarks;
 
-	public MultipartBody.Part getImage() {
-		return image;
+	public String getImageBlobUrl() {
+		return imageBlobUrl;
 	}
 
-	public void setImage(MultipartBody.Part image) {
-		this.image = image;
+	public void setImageBlobUrl(String imageBlobUrl) {
+		this.imageBlobUrl = imageBlobUrl;
 	}
 
-	public String getResult() {
-		return result;
+	public String getMl_result() {
+		return ml_result;
 	}
 
-	public void setResult(String result) {
-		this.result = result;
+	public void setMl_result(String ml_result) {
+		this.ml_result = ml_result;
 	}
 
-	public String getDishName() {
-		return dishName;
+	public String getUserDish() {
+		return userDish;
 	}
 
-	public void setDishName(String dishName) {
-		this.dishName = dishName;
+	public void setUserDish(String userDish) {
+		this.userDish = userDish;
 	}
 
 	public String getRemarks() {

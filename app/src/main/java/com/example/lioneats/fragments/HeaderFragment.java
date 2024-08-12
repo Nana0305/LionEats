@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -14,6 +13,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.lioneats.R;
+
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 
 import androidx.annotation.NonNull;
@@ -32,7 +34,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
-import androidx.loader.content.CursorLoader;
 
 import com.example.lioneats.activities.ImageResultActivity;
 import com.example.lioneats.activities.LoginActivity;
@@ -66,7 +67,6 @@ public class HeaderFragment extends Fragment {
 	private static final int REQUEST_IMAGE_CAPTURE = 1;
 	private static final int REQUEST_IMAGE_PICK = 2;
 	private Uri photoURI;
-	private MultipartBody.Part image;
 	private TextView usernameText;
 	private TextView actionBtn;
 	private ImageButton cameraBtn;
@@ -122,10 +122,6 @@ public class HeaderFragment extends Fragment {
 		SharedPreferences.Editor sessionEditor = userSessionPreferences.edit();
 		sessionEditor.clear();
 		sessionEditor.apply();
-
-		SharedPreferences.Editor dishEditor = dishListPreferences.edit();
-		dishEditor.clear();
-		dishEditor.apply();
 
 		Intent intent = new Intent(getActivity(), MainActivity.class);
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -197,7 +193,7 @@ public class HeaderFragment extends Fragment {
 			}
 			if (photoFile != null) {
 				photoURI = FileProvider.getUriForFile(getActivity(), "com.example.lioneats.provider", photoFile);
-				Log.d(getActivity().toString(), "photoUri: " + photoURI.toString());
+				Log.d("File URI", "Photo URI: " + photoURI.toString());
 				takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
 				startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
 			}
@@ -234,26 +230,41 @@ public class HeaderFragment extends Fragment {
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == getActivity().RESULT_OK) {
+			Log.d("ActivityResult", "Image capture successful. URI: " + photoURI.toString());
 			uploadImage(photoURI);
 		} else if (requestCode == REQUEST_IMAGE_PICK && resultCode == getActivity().RESULT_OK) {
 			if (data != null) {
 				photoURI = data.getData();
+				Log.d("ActivityResult", "Image selected from gallery. URI: " + photoURI.toString());
 				uploadImage(photoURI);
 			}
 		}
 	}
 
 	private void uploadImage(Uri imageUri) {
+		InputStream inputStream = null;
 		try {
-			InputStream inputStream = getActivity().getContentResolver().openInputStream(imageUri);
+			inputStream = getActivity().getContentResolver().openInputStream(imageUri);
 			byte[] bytes = new byte[inputStream.available()];
 			inputStream.read(bytes);
 
-			RequestBody requestFile = RequestBody.create(MediaType.parse("image/jpeg"), bytes);
-			image = MultipartBody.Part.createFormData("image", "image.jpg", requestFile);
+			Log.d("Image Upload", "Read image bytes, size: " + bytes.length);
+
+			String mimeType = getActivity().getContentResolver().getType(imageUri);
+			if (mimeType == null) {
+				mimeType = "image/jpeg";
+			}
+
+			Log.d("UploadImage", "URI: " + imageUri.toString());
+			Log.d("UploadImage", "MIME Type: " + mimeType);
+
+			RequestBody requestFile = RequestBody.create(MediaType.parse(mimeType), bytes);
+			MultipartBody.Part imagePart = MultipartBody.Part.createFormData("file", "image.jpg", requestFile);
+
+			Log.d("Image Upload", "MultipartBody created for image upload");
 
 			ApiService apiService = RetrofitClient.getApiService();
-			Call<ResponseBody> call = apiService.dishResult(image);
+			Call<ResponseBody> call = apiService.uploadImage(imagePart);
 
 			call.enqueue(new Callback<ResponseBody>() {
 				@Override
@@ -261,31 +272,27 @@ public class HeaderFragment extends Fragment {
 					try {
 						if (response.isSuccessful()) {
 							String apiResponse = response.body().string();
-
-							// Log the JSON response from the API
 							Log.d("API Response", "Success response: " + apiResponse);
 
-							// Parse JSON response into a Map
 							Gson gson = new Gson();
 							Type type = new TypeToken<Map<String, String>>() {}.getType();
 							Map<String, String> responseMap = gson.fromJson(apiResponse, type);
 
-							// Extract the result value using the key
-							String result = responseMap.get("result");
+							String imageBlobUrl = responseMap.get("imageUrl");
+							String predictedDish = responseMap.get("predictedDish");
+							Log.d("API Response", "Image Blob URL: " + imageBlobUrl);
+							Log.d("API Response", "Predicted Dish: " + predictedDish);
 
-							// Create an ML_feedback object to store data
 							ML_feedback feedback = new ML_feedback();
-							feedback.setImage(image);
-							feedback.setResult(result);
+							feedback.setImageBlobUrl(imageBlobUrl);
+							feedback.setMl_result(predictedDish);
 
-							// Start ImageResultActivity with the feedback object
 							Intent intent = new Intent(getActivity(), ImageResultActivity.class);
-							intent.putExtra("feedback", gson.toJson(feedback)); // Pass the feedback object as JSON
-							intent.putExtra("imageUri", imageUri.toString()); // Pass URI as a string
+							intent.putExtra("feedBack", gson.toJson(feedback));
+							intent.putExtra("imageUri", imageUri.toString());
 							startActivity(intent);
 
 						} else {
-							// Log the error response
 							Log.e("API Response", "Failed response: " + response.errorBody().string());
 							Toast.makeText(getActivity(), "Upload failed: " + response.message(), Toast.LENGTH_SHORT).show();
 						}
@@ -298,7 +305,6 @@ public class HeaderFragment extends Fragment {
 
 				@Override
 				public void onFailure(Call<ResponseBody> call, Throwable t) {
-					// Log the connection error
 					Log.e("API Connection Error", "onFailure: " + t.getMessage());
 					Toast.makeText(getActivity(), "Image upload failed", Toast.LENGTH_SHORT).show();
 				}
@@ -306,6 +312,14 @@ public class HeaderFragment extends Fragment {
 		} catch (IOException e) {
 			e.printStackTrace();
 			Toast.makeText(getActivity(), "Failed to open image", Toast.LENGTH_SHORT).show();
+		} finally {
+			if (inputStream != null) {
+				try {
+					inputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 }

@@ -36,6 +36,8 @@ dependencies {
     implementation ("com.squareup.picasso:picasso:2.71828")
     implementation("androidx.viewpager2:viewpager2:1.1.0")
     implementation("androidx.gridlayout:gridlayout:1.0.0")
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation(libs.appcompat)

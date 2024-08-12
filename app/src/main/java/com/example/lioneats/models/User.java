@@ -7,13 +7,13 @@ public class User {
 	private String username;
 	private String password;
 	private String email;
-	private int ageGroup;
-	private boolean isMale;
+	private Integer age;
+	private String gender;
 	private String country;
-	private List<Dish> dishPref;
+	private List<String> dishPreferences;
+	private String preferredBudget;
+	private List<String> allergies;
 	private boolean likesSpicy;
-	private String budget;
-	private List<String> allergy;
 
 	public String getName() {
 		return name;
@@ -47,20 +47,20 @@ public class User {
 		this.email = email;
 	}
 
-	public int getAgeGroup() {
-		return ageGroup;
+	public Integer getAge() {
+		return age;
 	}
 
-	public void setAgeGroup(int ageGroup) {
-		this.ageGroup = ageGroup;
+	public void setAge(Integer age) {
+		this.age = age;
 	}
 
-	public boolean isMale() {
-		return isMale;
+	public String getGender() {
+		return gender;
 	}
 
-	public void setMale(boolean male) {
-		isMale = male;
+	public void setGender(String gender) {
+		this.gender = gender;
 	}
 
 	public String getCountry() {
@@ -71,12 +71,28 @@ public class User {
 		this.country = country;
 	}
 
-	public List<Dish> getDishPref() {
-		return dishPref;
+	public List<String> getDishPreferences() {
+		return dishPreferences;
 	}
 
-	public void setDishPref(List<Dish> dishPref) {
-		this.dishPref = dishPref;
+	public void setDishPreferences(List<String> dishPreferences) {
+		this.dishPreferences = dishPreferences;
+	}
+
+	public String getPreferredBudget() {
+		return preferredBudget;
+	}
+
+	public void setPreferredBudget(String preferredBudget) {
+		this.preferredBudget = preferredBudget;
+	}
+
+	public List<String> getAllergies() {
+		return allergies;
+	}
+
+	public void setAllergies(List<String> allergies) {
+		this.allergies = allergies;
 	}
 
 	public boolean isLikesSpicy() {
@@ -85,21 +101,5 @@ public class User {
 
 	public void setLikesSpicy(boolean likesSpicy) {
 		this.likesSpicy = likesSpicy;
-	}
-
-	public String getBudget() {
-		return budget;
-	}
-
-	public void setBudget(String budget) {
-		this.budget = budget;
-	}
-
-	public List<String> getAllergy() {
-		return allergy;
-	}
-
-	public void setAllergy(List<String> allergy) {
-		this.allergy = allergy;
 	}
 }

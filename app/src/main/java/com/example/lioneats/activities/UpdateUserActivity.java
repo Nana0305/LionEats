@@ -1,6 +1,5 @@
 package com.example.lioneats.activities;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -11,9 +10,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.GridLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,9 +18,11 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.gridlayout.widget.GridLayout;
 
 import com.example.lioneats.R;
 import com.example.lioneats.api.ApiService;
+import com.example.lioneats.models.Allergy;
 import com.example.lioneats.models.Dish;
 import com.example.lioneats.utils.RetrofitClient;
 import com.google.gson.Gson;
@@ -43,19 +42,20 @@ import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class UpdateUserActivity extends AppCompatActivity {
-
 	private TextView nameText, usernameText;
-	private EditText passwordEditText, emailEditText, countryEditText;
-	private RadioGroup ageOptions, genderOptions, spicyOptions, budgetOptions;
-	private final List<String> allergies = Arrays.asList("Gluten", "Seafood", "Dairy", "Egg", "Peanut", "Sesame", "Soy");
-	private GridLayout dishContainer;
+	private EditText passwordEditText, emailEditText, ageEditText, countryEditText;
+	private RadioGroup genderOptions, budgetOptions, spicyOptions;
+	private GridLayout dishContainer, allergyOptionsGrid;
 	private List<Dish> dishList = new ArrayList<>();
-	private List<Dish> selectedDishes = new ArrayList<>();
+	private List<Allergy> allergyList = new ArrayList<>();
 	private List<CheckBox> allergyCheckboxes = new ArrayList<>();
+	private Long userId;
+	private List<Dish> dishSelections = new ArrayList<>();
+	//private List<String> selectedAllergies = new ArrayList<>();
+	//private List<String> selectedDishes = new ArrayList<>();
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -67,29 +67,25 @@ public class UpdateUserActivity extends AppCompatActivity {
 		passwordEditText = findViewById(R.id.passwordEditText);
 		emailEditText = findViewById(R.id.emailEditText);
 		countryEditText = findViewById(R.id.countryEditText);
-		ageOptions = findViewById(R.id.ageOptions);
+		ageEditText = findViewById(R.id.ageEditText);
 		genderOptions = findViewById(R.id.genderOptions);
-		spicyOptions = findViewById(R.id.spicyOptions);
 		budgetOptions = findViewById(R.id.budgetOptions);
+		spicyOptions = findViewById(R.id.spicyOptions);
 		dishContainer = findViewById(R.id.dishContainer);
-
-		for (int i = 0; i < allergies.size(); i++) {
-			int resId = getResources().getIdentifier("allergyOption" + (i + 1), "id", getPackageName());
-			CheckBox checkBox = findViewById(resId);
-			if (checkBox != null) {
-				allergyCheckboxes.add(checkBox);
-			}
-		}
+		allergyOptionsGrid = findViewById(R.id.allergyOptionsGrid);
 
 		loadDishesFromPreferences();
+		loadAllergiesFromPreferences();
+		setFieldsEditable(false);
 
-		SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
-		String username = sharedPreferences.getString("username", null);
-		fetchUserData(username);
+		Button homeBtn = findViewById(R.id.homeBtn);
+		homeBtn.setOnClickListener(v -> {
+			Intent intent = new Intent(UpdateUserActivity.this, MainActivity.class);
+			startActivity(intent);
+		});
 
 		Button editBtn = findViewById(R.id.editBtn);
 		Button updateBtn = findViewById(R.id.updateBtn);
-
 		editBtn.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -106,14 +102,80 @@ public class UpdateUserActivity extends AppCompatActivity {
 				updateBtn.setVisibility(View.GONE);
 			}
 		});
-
 		updateBtn.setVisibility(View.GONE);
-		setFieldsEditable(false);
+
+		SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
+		userId = sharedPreferences.getLong("user_id", -999);
+		fetchUserData();
 	}
 
-	private void fetchUserData(String username) {
+	private void loadAllergiesFromPreferences() {
+		SharedPreferences allergyListPreferences = getSharedPreferences("allergy_list", MODE_PRIVATE);
+		String allergyJson = allergyListPreferences.getString("allergies", null);
+
+		if (allergyJson != null) {
+			Type listType = new TypeToken<List<Allergy>>() {}.getType();
+			allergyList = new Gson().fromJson(allergyJson, listType);
+			populateAllergyCheckBoxes();
+		} else {
+			Toast.makeText(this, "No allergies found", Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	private void populateAllergyCheckBoxes() {
+		allergyOptionsGrid.removeAllViews(); // Clear existing views
+
+		for (Allergy allergy : allergyList) {
+			CheckBox checkBox = new CheckBox(this);
+			checkBox.setText(allergy.getName());
+			checkBox.setTextSize(15);
+			checkBox.setId(View.generateViewId());
+
+			GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+			params.setMargins(8, 8, 8, 8);
+			checkBox.setLayoutParams(params);
+
+			allergyCheckboxes.add(checkBox); // Keep track of created checkboxes
+			allergyOptionsGrid.addView(checkBox);
+		}
+	}
+
+	private void loadDishesFromPreferences() {
+		SharedPreferences sharedPreferences = getSharedPreferences("dish_list", MODE_PRIVATE);
+		String dishJson = sharedPreferences.getString("dishes", null);
+
+		if (dishJson != null) {
+			Type listType = new TypeToken<List<Dish>>() {}.getType();
+			dishList = new Gson().fromJson(dishJson, listType);
+			populateDishPreferences();
+		} else {
+			Toast.makeText(this, "No dishes found", Toast.LENGTH_SHORT).show();
+			Log.e("RegisterAccountActivity", "No dishes found in SharedPreferences");
+		}
+	}
+
+	private void populateDishPreferences() {
+		dishContainer.removeAllViews(); // Clear any existing views
+
+		for (Dish dish : dishList) {
+			View dishView = LayoutInflater.from(this).inflate(R.layout.item_dish, dishContainer, false);
+			ImageView dishImage = dishView.findViewById(R.id.dishImage);
+			TextView dishName = dishView.findViewById(R.id.dishName);
+
+			Picasso.get()
+					.load(dish.getImageUrl())
+					.placeholder(R.drawable.default_image) // Optional: Placeholder image
+					.into(dishImage);
+
+			dishName.setText(dish.getDishDetailName());
+			dishView.setOnClickListener(v -> toggleDishSelection(dishView, dish));
+			dishContainer.addView(dishView);
+		}
+	}
+
+	private void fetchUserData() {
 		ApiService apiService = RetrofitClient.getApiService();
-		Call<User> call = apiService.viewUser(username);
+		Call<User> call = apiService.viewUser(userId);
 
 		call.enqueue(new Callback<User>() {
 			@Override
@@ -149,68 +211,65 @@ public class UpdateUserActivity extends AppCompatActivity {
 		passwordEditText.setText(user.getPassword());
 		emailEditText.setText(user.getEmail());
 		countryEditText.setText(user.getCountry());
-
-		if (user.getAgeGroup() == 1) {
-			ageOptions.check(R.id.ageOption1);
-		} else if (user.getAgeGroup() == 2) {
-			ageOptions.check(R.id.ageOption2);
-		} else if (user.getAgeGroup() == 3) {
-			ageOptions.check(R.id.ageOption3);
-		} else if (user.getAgeGroup() == 4) {
-			ageOptions.check(R.id.ageOption4);
+		ageEditText.setText(String.valueOf(user.getAge()));
+		if (user.isLikesSpicy()) {
+			spicyOptions.check(R.id.spicyOption1);
+		} else {
+			spicyOptions.check(R.id.spicyOption2);
 		}
-
-		genderOptions.check(user.isMale() ? R.id.genderOption1 : R.id.genderOption2);
-		spicyOptions.check(user.isLikesSpicy() ? R.id.spicyOption1 : R.id.spicyOption2);
-
-		switch (user.getBudget()) {
-			case "Low":
+		switch (user.getGender()) {
+			case "Male":
+				genderOptions.check(R.id.genderOption1);
+				break;
+			case "Female":
+				genderOptions.check(R.id.genderOption2);
+				break;
+			case "Other":
+				genderOptions.check(R.id.genderOption3);
+				break;
+		}
+		switch (user.getPreferredBudget()) {
+			case "LOW":
 				budgetOptions.check(R.id.budgetOption1);
 				break;
-			case "Medium":
+			case "MEDIUM":
 				budgetOptions.check(R.id.budgetOption2);
 				break;
-			case "High":
+			case "HIGH":
 				budgetOptions.check(R.id.budgetOption3);
 				break;
 		}
-
-		updateDishSelections(user.getDishPref());
-		updateAllergySelections(user.getAllergy());
+		updateAllergySelections(user.getAllergies());
+		updateDishSelections(user.getDishPreferences());
 	}
 
-	private void updateDishSelections(List<Dish> dishPrefs) {
-		selectedDishes.clear(); // Clear any existing selected dishes
+	private void updateAllergySelections(List<String> userAllergies) {
+		for (CheckBox checkBox : allergyCheckboxes) {
+			String allergyName = checkBox.getText().toString();
+			boolean isSelected = false;
+			for (String allergy : userAllergies) {
+				if (allergy.equals(allergyName)) {
+					isSelected = true;
+					break;
+				}
+			}
+			checkBox.setChecked(isSelected);
+		}
+	}
 
-		// Iterate over the dish container to set the correct backgrounds and selections
+	private void updateDishSelections(List<String> dishPrefs) {
 		for (int i = 0; i < dishContainer.getChildCount(); i++) {
 			View dishView = dishContainer.getChildAt(i);
 			TextView dishNameView = dishView.findViewById(R.id.dishName);
 
 			if (dishNameView != null) {
 				String dishName = dishNameView.getText().toString();
-
-				// Find the dish in dishList that matches the name
-				for (Dish dish : dishList) {
-					if (dish.getName().equals(dishName)) {
-						if (dishPrefs.contains(dish)) {
-							dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selected_background));
-							selectedDishes.add(dish); // Use the existing Dish object from dishList
-						} else {
-							dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selector_background));
-						}
-						break; // Break since we found the match
-					}
+				if (dishPrefs.contains(dishName)) {
+					dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selected_background));
+				} else {
+					dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selector_background));
 				}
 			}
-		}
-	}
-
-	private void updateAllergySelections(List<String> userAllergies) {
-		for (int i = 0; i < allergyCheckboxes.size(); i++) {
-			CheckBox checkBox = allergyCheckboxes.get(i);
-			String allergy = allergies.get(i);
-			checkBox.setChecked(userAllergies.contains(allergy));
 		}
 	}
 
@@ -218,27 +277,47 @@ public class UpdateUserActivity extends AppCompatActivity {
 		passwordEditText.setEnabled(enabled);
 		emailEditText.setEnabled(enabled);
 		countryEditText.setEnabled(enabled);
-
-		// Enable/Disable RadioGroups
-		for (int i = 0; i < ageOptions.getChildCount(); i++) {
-			ageOptions.getChildAt(i).setEnabled(enabled);
-		}
+		ageEditText.setEnabled(enabled);
 
 		for (int i = 0; i < genderOptions.getChildCount(); i++) {
 			genderOptions.getChildAt(i).setEnabled(enabled);
-		}
-
-		for (int i = 0; i < spicyOptions.getChildCount(); i++) {
-			spicyOptions.getChildAt(i).setEnabled(enabled);
 		}
 
 		for (int i = 0; i < budgetOptions.getChildCount(); i++) {
 			budgetOptions.getChildAt(i).setEnabled(enabled);
 		}
 
+		for (int i = 0; i < spicyOptions.getChildCount(); i++) {
+			spicyOptions.getChildAt(i).setEnabled(enabled);
+		}
+
 		for (CheckBox checkBox : allergyCheckboxes) {
+			checkBox.setClickable(enabled);
 			checkBox.setEnabled(enabled);
 		}
+
+		for (int i = 0; i < dishContainer.getChildCount(); i++) {
+			Dish dish = dishList.get(i);
+			View dishView = dishContainer.getChildAt(i);
+			dishView.setClickable(enabled);
+			if (enabled) {
+				dishView.setOnClickListener(v -> toggleDishSelection(dishView,dish));
+			} else {
+				dishView.setOnClickListener(null);
+			}
+		}
+	}
+
+	private void toggleDishSelection(View dishView, Dish dish) {
+		if (dishSelections.contains(dish)) {
+			dishSelections.remove(dish);
+			dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selector_background)); // Normal background
+		} else {
+			dishSelections.add(dish);
+			dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selected_background)); // Selected background
+		}
+
+		Log.d("RegisterAccountActivity", "Selected Dishes: " + dishSelections.toString());
 	}
 
 	public void updateUser() {
@@ -249,13 +328,12 @@ public class UpdateUserActivity extends AppCompatActivity {
 
 		User user = createUserFromInput();
 
-		// Convert User object to JSON and log it
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		String userJson = gson.toJson(user);
 		Log.d("UpdateUserActivity", "User JSON: " + userJson);
 
 		ApiService apiService = RetrofitClient.getApiService();
-		Call<ResponseBody> call = apiService.updateUser(user.getUsername(), user);
+		Call<ResponseBody> call = apiService.updateUser(userId, user);
 
 		call.enqueue(new Callback<ResponseBody>() {
 			@Override
@@ -292,75 +370,79 @@ public class UpdateUserActivity extends AppCompatActivity {
 		String password = passwordEditText.getText().toString();
 		String email = emailEditText.getText().toString();
 		String country = countryEditText.getText().toString();
-		int ageGroup = getSelectedAgeGroup();
-		boolean isMale = getSelectedGender();
-		boolean likesSpicy = getSelectedSpicyOption();
+		Integer age = Integer.parseInt(ageEditText.getText().toString());
+		String gender = getSelectedGender();
 		String budget = getSelectedBudget();
+		boolean likesSpicy = getSpicyPreference();
 		List<String> selectedAllergies = getSelectedAllergies();
+		List<String> selectedDishes = getSelectedDishes();
 
 		User user = new User();
 		user.setName(name);
 		user.setUsername(username);
 		user.setPassword(password);
 		user.setEmail(email);
-		user.setAgeGroup(ageGroup);
-		user.setMale(isMale);
+		user.setAge(age);
+		user.setGender(gender);
 		user.setCountry(country);
-		user.setDishPref(selectedDishes);
 		user.setLikesSpicy(likesSpicy);
-		user.setBudget(budget);
-		user.setAllergy(selectedAllergies);
-
+		user.setPreferredBudget(budget);
+		user.setAllergies(selectedAllergies);
+		user.setDishPreferences(selectedDishes);
 		return user;
 	}
 
-	private int getSelectedAgeGroup() {
-		int selectedId = ageOptions.getCheckedRadioButtonId();
-		if (selectedId == R.id.ageOption1) {
-			return 1; // <21
-		} else if (selectedId == R.id.ageOption2) {
-			return 2; // 21-35
-		} else if (selectedId == R.id.ageOption3) {
-			return 3; // 35-60
-		} else if (selectedId == R.id.ageOption4) {
-			return 4; // >60
-		} else {
-			return 0;
-		}
-	}
-
-	private boolean getSelectedGender() {
+	private String getSelectedGender() {
 		int selectedId = genderOptions.getCheckedRadioButtonId();
-		return selectedId == R.id.genderOption1;
-	}
-
-	private boolean getSelectedSpicyOption() {
-		int selectedId = spicyOptions.getCheckedRadioButtonId();
-		return selectedId == R.id.spicyOption1;
+		if (selectedId == R.id.genderOption1) {
+			return "Male";
+		} else if (selectedId == R.id.genderOption2) {
+			return "Female";
+		} else if (selectedId == R.id.genderOption3){
+			return "Other";
+		} else {
+			return "";
+		}
 	}
 
 	private String getSelectedBudget() {
 		int selectedId = budgetOptions.getCheckedRadioButtonId();
 		if (selectedId == R.id.budgetOption1) {
-			return "Low";
+			return "LOW";
 		} else if (selectedId == R.id.budgetOption2) {
-			return "Medium";
+			return "MEDIUM";
 		} else if (selectedId == R.id.budgetOption3) {
-			return "High";
+			return "HIGH";
 		} else {
 			return "";
 		}
+	}
+
+	private boolean getSpicyPreference() {
+		int selectedId = spicyOptions.getCheckedRadioButtonId();
+		return selectedId == R.id.spicyOption1; // Returns true if "Yes, of course!" is selected
 	}
 
 	private List<String> getSelectedAllergies() {
 		List<String> selectedAllergies = new ArrayList<>();
 		for (CheckBox checkBox : allergyCheckboxes) {
 			if (checkBox.isChecked()) {
-				selectedAllergies.add(checkBox.getText().toString());
+				String allergyName = checkBox.getText().toString();
+				selectedAllergies.add(allergyName);
 			}
 		}
 		return selectedAllergies;
 	}
+
+	private List<String> getSelectedDishes() {
+		List<String> selectedDishes = new ArrayList<>();
+		for (Dish dish : dishSelections) {
+			String dishName = dish.getDishDetailName();
+			selectedDishes.add(dishName);
+		}
+		return selectedDishes;
+	}
+
 	private void updateSuccessDialog() {
 		LayoutInflater inflater = getLayoutInflater();
 		View dialogView = inflater.inflate(R.layout.dialog_custom, null);
@@ -369,8 +451,7 @@ public class UpdateUserActivity extends AppCompatActivity {
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setView(dialogView);
-		builder.setCancelable(false); // Make the dialog non-cancelable
-
+		builder.setCancelable(false);
 		AlertDialog dialog = builder.create();
 		dialog.show();
 
@@ -385,65 +466,5 @@ public class UpdateUserActivity extends AppCompatActivity {
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivity(intent);
 		finish();
-	}
-
-	private void loadDishesFromPreferences() {
-		SharedPreferences sharedPreferences = getSharedPreferences("dish_list", MODE_PRIVATE);
-		String dishJson = sharedPreferences.getString("dishes", null);
-
-		if (dishJson != null) {
-			Type listType = new TypeToken<List<Dish>>() {}.getType();
-			dishList = new Gson().fromJson(dishJson, listType);
-			populateDishPreferences();
-		} else {
-			Toast.makeText(this, "No dishes found", Toast.LENGTH_SHORT).show();
-			Log.e("UpdateUserActivity", "No dishes found in SharedPreferences");
-		}
-	}
-
-	private void populateDishPreferences() {
-		dishContainer.removeAllViews(); // Clear any existing views
-
-		for (Dish dish : dishList) {
-			// Inflate the dish item layout
-			View dishView = LayoutInflater.from(this).inflate(R.layout.item_dish, dishContainer, false);
-
-			ImageView dishImage = dishView.findViewById(R.id.dishImage);
-			TextView dishName = dishView.findViewById(R.id.dishName);
-
-			// Load the image using Picasso
-			Picasso.get()
-					.load(dish.getImageUrl())
-					.placeholder(R.drawable.default_image) // Optional: Placeholder image
-					.into(dishImage);
-
-			// Set the dish name
-			dishName.setText(dish.getName());
-
-			// Set initial background based on selection
-			if (selectedDishes.contains(dish)) {
-				dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selected_background));
-			} else {
-				dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selector_background));
-			}
-
-			// Set click listener to toggle selection
-			dishView.setOnClickListener(v -> toggleDishSelection(dishView, dish));
-
-			// Add the dish view to the container
-			dishContainer.addView(dishView);
-		}
-	}
-
-	private void toggleDishSelection(View dishView, Dish dish) {
-		if (selectedDishes.contains(dish)) {
-			selectedDishes.remove(dish);
-			dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selector_background)); // Normal background
-		} else {
-			selectedDishes.add(dish);
-			dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selected_background)); // Selected background
-		}
-
-		Log.d("UpdateUserActivity", "Selected Dishes: " + selectedDishes.toString());
 	}
 }

@@ -1,10 +1,8 @@
 package com.example.lioneats.models;
 
-import java.util.List;
-
 public class DishDetail {
 	private String name;
-	private List<String> allergies;
+	private Boolean isSpicy;
 	private String ingredients;
 	private String history;
 	private String description;
@@ -17,12 +15,12 @@ public class DishDetail {
 		this.name = name;
 	}
 
-	public List<String> getAllergies() {
-		return allergies;
+	public Boolean getSpicy() {
+		return isSpicy;
 	}
 
-	public void setAllergies(List<String> allergies) {
-		this.allergies = allergies;
+	public void setSpicy(Boolean spicy) {
+		isSpicy = spicy;
 	}
 
 	public String getIngredients() {

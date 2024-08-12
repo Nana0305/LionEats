@@ -1,17 +1,9 @@
 package com.example.lioneats.models;
 
-import java.util.Objects;
-
 public class Dish {
 	private int id;
-	private String name;
+	private String dishDetailName;
 	private String imageUrl;
-
-	public Dish(int id, String name, String imageUrl) {
-		this.id = id;
-		this.name = name;
-		this.imageUrl = imageUrl;
-	}
 
 	public int getId() {
 		return id;
@@ -19,14 +11,6 @@ public class Dish {
 
 	public void setId(int id) {
 		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	public String getImageUrl() {
@@ -37,24 +21,19 @@ public class Dish {
 		this.imageUrl = imageUrl;
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		Dish dish = (Dish) o;
-		return id == dish.id;
+	public String getDishDetailName() {
+		return dishDetailName;
 	}
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
+	public void setDishDetailName(String dishDetailName) {
+		this.dishDetailName = dishDetailName;
 	}
 
 	@Override
 	public String toString() {
 		return "Dish{" +
 				"id=" + id +
-				", name='" + name + '\'' +
+				", dish='" + dishDetailName + '\'' +
 				", imageUrl='" + imageUrl + '\'' +
 				'}';
 	}

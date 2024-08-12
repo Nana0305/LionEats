@@ -29,6 +29,7 @@ import com.example.lioneats.dtos.NearByShopIdsDTO;
 import com.example.lioneats.dtos.ShopDTO;
 import com.example.lioneats.dtos.ShopPlaceIdDTO;
 import com.example.lioneats.fragments.HeaderFragment;
+import com.example.lioneats.models.Allergy;
 import com.example.lioneats.models.Dish;
 import com.example.lioneats.utils.RetrofitClient;
 import com.example.lioneats.utils.RetrofitService;
@@ -59,16 +60,18 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	private Runnable runnable;
 	private int currentItem = 0;
 	private List<Dish> dishList = new ArrayList<>();
+	private List<Allergy> allergyList = new ArrayList<>();
 	private SharedPreferences userSessionPreferences;
 	private SharedPreferences dishListPreferences;
+	private SharedPreferences allergyListPreferences;
+	private int[] spinnerIds = {R.id.spinnerDish, R.id.spinnerLocation, R.id.spinnerBudget, R.id.spinnerTiming, R.id.spinnerAllergen};
+	private int[] spinnerItemArrays = {R.array.spinnerDish_items, R.array.spinnerLocation_items, R.array.spinnerBudget_items, R.array.spinnerTiming_items, R.array.spinnerAllergen_items};
 
 	private String selectedDish;
 	private String selectedLocation;
 	private String selectedBudget;
 	private String selectedTiming;
 	private String selectedAllergen;
-	private int[] spinnerIds = {R.id.spinnerDish, R.id.spinnerLocation, R.id.spinnerBudget, R.id.spinnerTiming, R.id.spinnerAllergen};
-	private int[] spinnerItemArrays = {R.array.spinnerDish_items, R.array.spinnerLocation_items, R.array.spinnerBudget_items, R.array.spinnerTiming_items, R.array.spinnerAllergen_items};
 
 	//for communicating permission request and response
 	private static final int REQUEST_CODE = 100;
@@ -91,23 +94,22 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 
 		userSessionPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
 		dishListPreferences = getSharedPreferences("dish_list", MODE_PRIVATE);
+		allergyListPreferences = getSharedPreferences("allergy_list", MODE_PRIVATE);
 
 		String username = userSessionPreferences.getString("username", null);
 		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 		transaction.replace(R.id.headerFragmentContainer, new HeaderFragment());
 		transaction.commit();
 
-		// Show or hide layouts based on login status
 		if (username != null) {
 			findViewById(R.id.userHomeLayout).setVisibility(View.VISIBLE);
 			setupSpinners();
 		}
 
-		// Carousel with dish images, click to dish details
 		viewPager = findViewById(R.id.viewPager);
 		loadDishesFromPreferences();
-
 		fetchAndUpdateDishes();
+		fetchAndUpdateAllergies();
 
 		// Recycler view of shops
 		recyclerView = findViewById(R.id.recyclerView);
@@ -287,7 +289,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	private void logDishList(List<Dish> dishList) {
 		if (dishList != null && !dishList.isEmpty()) {
 			for (Dish dish : dishList) {
-				Log.d("DishList", "ID: " + dish.getId() + ", Name: " + dish.getName() + ", Image URL: " + dish.getImageUrl());
+				Log.d("DishList", dish.toString());
 			}
 		} else {
 			Log.d("DishList", "Dish list is empty or null.");
@@ -325,6 +327,35 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		if (handler != null) {
 			handler.removeCallbacks(runnable);
 		}
+	}
+
+	private void fetchAndUpdateAllergies() {
+		ApiService apiService = RetrofitClient.getApiService();
+		Call<List<Allergy>> call = apiService.getAllergies();
+
+		call.enqueue(new Callback<List<Allergy>>() {
+			@Override
+			public void onResponse(Call<List<Allergy>> call, Response<List<Allergy>> response) {
+				if (response.isSuccessful() && response.body() != null) {
+					List<Allergy> updatedAllergyList = response.body();
+					logAllergies(updatedAllergyList);
+					if (!updatedAllergyList.equals(allergyList)) {
+						allergyList = updatedAllergyList;
+						SharedPreferences.Editor allergyEditor = allergyListPreferences.edit();
+						allergyEditor.putString("allergies", new Gson().toJson(allergyList));
+						allergyEditor.apply();
+					}
+				} else {
+					Toast.makeText(MainActivity.this, "Failed to fetch allergy list", Toast.LENGTH_SHORT).show();
+				}
+			}
+
+			@Override
+			public void onFailure(Call<List<Allergy>> call, Throwable t) {
+				Toast.makeText(MainActivity.this, "Network Error", Toast.LENGTH_SHORT).show();
+				Log.e("MainActivity", "Network Error: ", t);
+			}
+		});
 	}
 
 	private void setupSpinners() {
@@ -366,6 +397,12 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 				// Do nothing
 			}
 		});
+	}
+
+	private void logAllergies(List<Allergy> allergies) {
+		for (Allergy allergy : allergies) {
+			Log.d("RegisterAccountActivity", "Allergy: " + allergy.getName());
+		}
 	}
 }
 
