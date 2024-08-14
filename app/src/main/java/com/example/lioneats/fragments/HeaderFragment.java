@@ -1,6 +1,7 @@
 package com.example.lioneats.fragments;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -71,8 +72,7 @@ public class HeaderFragment extends Fragment {
 	private TextView actionBtn;
 	private ImageButton cameraBtn;
 	private ImageView logoBtn;
-	private SharedPreferences userSessionPreferences;
-	private SharedPreferences dishListPreferences;
+	private SharedPreferences userSessionPreferences, userPreferences;
 
 	@Nullable
 	@Override
@@ -84,9 +84,8 @@ public class HeaderFragment extends Fragment {
 		cameraBtn = view.findViewById(R.id.cameraBtn);
 		logoBtn = view.findViewById(R.id.logoBtn);
 
+		userPreferences = getActivity().getSharedPreferences("user", getActivity().MODE_PRIVATE);
 		userSessionPreferences = getActivity().getSharedPreferences("user_session", getActivity().MODE_PRIVATE);
-		dishListPreferences = getActivity().getSharedPreferences("dish_list", getActivity().MODE_PRIVATE);
-
 		String username = userSessionPreferences.getString("username", null);
 		if (username != null) {
 			usernameText.setText(username);
@@ -122,6 +121,10 @@ public class HeaderFragment extends Fragment {
 		SharedPreferences.Editor sessionEditor = userSessionPreferences.edit();
 		sessionEditor.clear();
 		sessionEditor.apply();
+
+		SharedPreferences.Editor userEditor = userPreferences.edit();
+		userEditor.clear();
+		userEditor.apply();
 
 		Intent intent = new Intent(getActivity(), MainActivity.class);
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -163,7 +166,7 @@ public class HeaderFragment extends Fragment {
 	private void showImageSourceDialog() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		builder.setTitle("Choose Image Source")
-				.setItems(new CharSequence[]{"Camera", "Gallery"},  new DialogInterface.OnClickListener() {
+				.setItems(new CharSequence[]{"Camera", "Gallery"}, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						switch (which) {
@@ -182,6 +185,7 @@ public class HeaderFragment extends Fragment {
 				});
 		builder.create().show();
 	}
+
 	private void dispatchTakePictureIntent() {
 		Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 		if (takePictureIntent.resolveActivity(getActivity().getPackageManager()) != null) {
@@ -189,7 +193,7 @@ public class HeaderFragment extends Fragment {
 			try {
 				photoFile = createImageFile();
 			} catch (IOException ex) {
-				Log.e(getActivity().toString(), "Network Error: ");
+				Log.e(getActivity().toString(), "Error occurred while creating the File");
 			}
 			if (photoFile != null) {
 				photoURI = FileProvider.getUriForFile(getActivity(), "com.example.lioneats.provider", photoFile);
@@ -216,9 +220,10 @@ public class HeaderFragment extends Fragment {
 
 	@Override
 	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 		if (requestCode == REQUEST_CAMERA_PERMISSION) {
 			if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-				dispatchTakePictureIntent();
+				showImageSourceDialog();
 			} else {
 				// Permission denied
 				Toast.makeText(getActivity(), "Camera permission is required to take pictures", Toast.LENGTH_SHORT).show();
@@ -231,95 +236,19 @@ public class HeaderFragment extends Fragment {
 		super.onActivityResult(requestCode, resultCode, data);
 		if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == getActivity().RESULT_OK) {
 			Log.d("ActivityResult", "Image capture successful. URI: " + photoURI.toString());
-			uploadImage(photoURI);
+			navigateToImageResultActivity(photoURI);
 		} else if (requestCode == REQUEST_IMAGE_PICK && resultCode == getActivity().RESULT_OK) {
 			if (data != null) {
 				photoURI = data.getData();
 				Log.d("ActivityResult", "Image selected from gallery. URI: " + photoURI.toString());
-				uploadImage(photoURI);
+				navigateToImageResultActivity(photoURI);
 			}
 		}
 	}
 
-	private void uploadImage(Uri imageUri) {
-		InputStream inputStream = null;
-		try {
-			inputStream = getActivity().getContentResolver().openInputStream(imageUri);
-			byte[] bytes = new byte[inputStream.available()];
-			inputStream.read(bytes);
-
-			Log.d("Image Upload", "Read image bytes, size: " + bytes.length);
-
-			String mimeType = getActivity().getContentResolver().getType(imageUri);
-			if (mimeType == null) {
-				mimeType = "image/jpeg";
-			}
-
-			Log.d("UploadImage", "URI: " + imageUri.toString());
-			Log.d("UploadImage", "MIME Type: " + mimeType);
-
-			RequestBody requestFile = RequestBody.create(MediaType.parse(mimeType), bytes);
-			MultipartBody.Part imagePart = MultipartBody.Part.createFormData("file", "image.jpg", requestFile);
-
-			Log.d("Image Upload", "MultipartBody created for image upload");
-
-			ApiService apiService = RetrofitClient.getApiService();
-			Call<ResponseBody> call = apiService.uploadImage(imagePart);
-
-			call.enqueue(new Callback<ResponseBody>() {
-				@Override
-				public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-					try {
-						if (response.isSuccessful()) {
-							String apiResponse = response.body().string();
-							Log.d("API Response", "Success response: " + apiResponse);
-
-							Gson gson = new Gson();
-							Type type = new TypeToken<Map<String, String>>() {}.getType();
-							Map<String, String> responseMap = gson.fromJson(apiResponse, type);
-
-							String imageBlobUrl = responseMap.get("imageUrl");
-							String predictedDish = responseMap.get("predictedDish");
-							Log.d("API Response", "Image Blob URL: " + imageBlobUrl);
-							Log.d("API Response", "Predicted Dish: " + predictedDish);
-
-							ML_feedback feedback = new ML_feedback();
-							feedback.setImageBlobUrl(imageBlobUrl);
-							feedback.setMl_result(predictedDish);
-
-							Intent intent = new Intent(getActivity(), ImageResultActivity.class);
-							intent.putExtra("feedBack", gson.toJson(feedback));
-							intent.putExtra("imageUri", imageUri.toString());
-							startActivity(intent);
-
-						} else {
-							Log.e("API Response", "Failed response: " + response.errorBody().string());
-							Toast.makeText(getActivity(), "Upload failed: " + response.message(), Toast.LENGTH_SHORT).show();
-						}
-					} catch (IOException | JsonSyntaxException e) {
-						e.printStackTrace();
-						Log.e("API Response", "Exception during parsing or response: " + e.getMessage());
-						Toast.makeText(getActivity(), "Failed to parse response", Toast.LENGTH_SHORT).show();
-					}
-				}
-
-				@Override
-				public void onFailure(Call<ResponseBody> call, Throwable t) {
-					Log.e("API Connection Error", "onFailure: " + t.getMessage());
-					Toast.makeText(getActivity(), "Image upload failed", Toast.LENGTH_SHORT).show();
-				}
-			});
-		} catch (IOException e) {
-			e.printStackTrace();
-			Toast.makeText(getActivity(), "Failed to open image", Toast.LENGTH_SHORT).show();
-		} finally {
-			if (inputStream != null) {
-				try {
-					inputStream.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
+	private void navigateToImageResultActivity(Uri imageUri) {
+		Intent intent = new Intent(getActivity(), ImageResultActivity.class);
+		intent.putExtra("imageUri", imageUri.toString());
+		startActivity(intent);
 	}
 }

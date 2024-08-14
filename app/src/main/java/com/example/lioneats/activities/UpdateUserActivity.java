@@ -24,19 +24,17 @@ import com.example.lioneats.R;
 import com.example.lioneats.api.ApiService;
 import com.example.lioneats.models.Allergy;
 import com.example.lioneats.models.Dish;
+import com.example.lioneats.models.UserDTO;
 import com.example.lioneats.utils.RetrofitClient;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Arrays;
-
-import com.example.lioneats.models.User;
-import com.google.gson.reflect.TypeToken;
-import com.squareup.picasso.Picasso;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -53,15 +51,31 @@ public class UpdateUserActivity extends AppCompatActivity {
 	private List<CheckBox> allergyCheckboxes = new ArrayList<>();
 	private Long userId;
 	private List<Dish> dishSelections = new ArrayList<>();
-	//private List<String> selectedAllergies = new ArrayList<>();
-	//private List<String> selectedDishes = new ArrayList<>();
-
+	private SharedPreferences userSessionPreferences, userPreferences, dishListPreferences, allergyListPreferences;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_update_user);
 
+		// Initialize UI components
+		initializeUIComponents();
+
+		// Initialize SharedPreferences
+		initializeSharedPreferences();
+
+		userId = userSessionPreferences.getLong("user_id", -999);
+
+		loadDishesFromPreferences();
+		loadAllergiesFromPreferences();
+		setFieldsEditable(false);
+
+		setupButtonListeners();
+
+		loadUserFromPreferencesOrFetch();
+	}
+
+	private void initializeUIComponents() {
 		nameText = findViewById(R.id.nameText);
 		usernameText = findViewById(R.id.usernameText);
 		passwordEditText = findViewById(R.id.passwordEditText);
@@ -73,11 +87,16 @@ public class UpdateUserActivity extends AppCompatActivity {
 		spicyOptions = findViewById(R.id.spicyOptions);
 		dishContainer = findViewById(R.id.dishContainer);
 		allergyOptionsGrid = findViewById(R.id.allergyOptionsGrid);
+	}
 
-		loadDishesFromPreferences();
-		loadAllergiesFromPreferences();
-		setFieldsEditable(false);
+	private void initializeSharedPreferences() {
+		userSessionPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
+		userPreferences = getSharedPreferences("user", MODE_PRIVATE);
+		dishListPreferences = getSharedPreferences("dish_list", MODE_PRIVATE);
+		allergyListPreferences = getSharedPreferences("allergy_list", MODE_PRIVATE);
+	}
 
+	private void setupButtonListeners() {
 		Button homeBtn = findViewById(R.id.homeBtn);
 		homeBtn.setOnClickListener(v -> {
 			Intent intent = new Intent(UpdateUserActivity.this, MainActivity.class);
@@ -86,31 +105,20 @@ public class UpdateUserActivity extends AppCompatActivity {
 
 		Button editBtn = findViewById(R.id.editBtn);
 		Button updateBtn = findViewById(R.id.updateBtn);
-		editBtn.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				setFieldsEditable(true);
-				editBtn.setVisibility(View.GONE);
-				updateBtn.setVisibility(View.VISIBLE);
-			}
+		editBtn.setOnClickListener(v -> {
+			setFieldsEditable(true);
+			editBtn.setVisibility(View.GONE);
+			updateBtn.setVisibility(View.VISIBLE);
 		});
-		updateBtn.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				updateUser();
-				editBtn.setVisibility(View.VISIBLE);
-				updateBtn.setVisibility(View.GONE);
-			}
+		updateBtn.setOnClickListener(v -> {
+			updateUser();
+			editBtn.setVisibility(View.VISIBLE);
+			updateBtn.setVisibility(View.GONE);
 		});
 		updateBtn.setVisibility(View.GONE);
-
-		SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
-		userId = sharedPreferences.getLong("user_id", -999);
-		fetchUserData();
 	}
 
 	private void loadAllergiesFromPreferences() {
-		SharedPreferences allergyListPreferences = getSharedPreferences("allergy_list", MODE_PRIVATE);
 		String allergyJson = allergyListPreferences.getString("allergies", null);
 
 		if (allergyJson != null) {
@@ -141,8 +149,7 @@ public class UpdateUserActivity extends AppCompatActivity {
 	}
 
 	private void loadDishesFromPreferences() {
-		SharedPreferences sharedPreferences = getSharedPreferences("dish_list", MODE_PRIVATE);
-		String dishJson = sharedPreferences.getString("dishes", null);
+		String dishJson = dishListPreferences.getString("dishes", null);
 
 		if (dishJson != null) {
 			Type listType = new TypeToken<List<Dish>>() {}.getType();
@@ -150,7 +157,7 @@ public class UpdateUserActivity extends AppCompatActivity {
 			populateDishPreferences();
 		} else {
 			Toast.makeText(this, "No dishes found", Toast.LENGTH_SHORT).show();
-			Log.e("RegisterAccountActivity", "No dishes found in SharedPreferences");
+			Log.e("UpdateUserActivity", "No dishes found in SharedPreferences");
 		}
 	}
 
@@ -173,19 +180,30 @@ public class UpdateUserActivity extends AppCompatActivity {
 		}
 	}
 
+	private void loadUserFromPreferencesOrFetch() {
+		String userJson = userPreferences.getString("user", null);
+
+		if (userJson != null) {
+			UserDTO user = new Gson().fromJson(userJson, UserDTO.class);
+			updateUI(user);
+		} else {
+			fetchUserData();
+		}
+	}
+
 	private void fetchUserData() {
 		ApiService apiService = RetrofitClient.getApiService();
-		Call<User> call = apiService.viewUser(userId);
+		Call<UserDTO> call = apiService.viewUser(userId);
 
-		call.enqueue(new Callback<User>() {
+		call.enqueue(new Callback<UserDTO>() {
 			@Override
-			public void onResponse(Call<User> call, Response<User> response) {
+			public void onResponse(Call<UserDTO> call, Response<UserDTO> response) {
 				if (response.isSuccessful() && response.body() != null) {
-					Gson gson = new GsonBuilder().setPrettyPrinting().create();
-					String jsonResponse = gson.toJson(response.body());
-					Log.d("UpdateUserActivity", "JSON Response: " + jsonResponse);
+					UserDTO user = response.body();
 
-					User user = response.body();
+					// Save user data to SharedPreferences
+					saveUserToPreferences(user);
+
 					updateUI(user);
 				} else {
 					Toast.makeText(UpdateUserActivity.this, "Failed to fetch data", Toast.LENGTH_SHORT).show();
@@ -193,16 +211,22 @@ public class UpdateUserActivity extends AppCompatActivity {
 			}
 
 			@Override
-			public void onFailure(Call<User> call, Throwable t) {
+			public void onFailure(Call<UserDTO> call, Throwable t) {
 				Toast.makeText(UpdateUserActivity.this, "Network Error", Toast.LENGTH_SHORT).show();
 				Log.e("UpdateUserActivity", "Network Error: ", t);
 			}
 		});
 	}
 
-	private void updateUI(User user) {
+	private void saveUserToPreferences(UserDTO user) {
+		SharedPreferences.Editor editor = userPreferences.edit();
+		editor.putString("user", new Gson().toJson(user));
+		editor.apply();
+	}
+
+	private void updateUI(UserDTO user) {
 		if (user == null) {
-			Log.e("UpdateUserActivity", "User data is null");
+			Log.e("UpdateUserActivity", "UserDTO data is null");
 			return;
 		}
 
@@ -301,7 +325,7 @@ public class UpdateUserActivity extends AppCompatActivity {
 			View dishView = dishContainer.getChildAt(i);
 			dishView.setClickable(enabled);
 			if (enabled) {
-				dishView.setOnClickListener(v -> toggleDishSelection(dishView,dish));
+				dishView.setOnClickListener(v -> toggleDishSelection(dishView, dish));
 			} else {
 				dishView.setOnClickListener(null);
 			}
@@ -317,7 +341,7 @@ public class UpdateUserActivity extends AppCompatActivity {
 			dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selected_background)); // Selected background
 		}
 
-		Log.d("RegisterAccountActivity", "Selected Dishes: " + dishSelections.toString());
+		Log.d("UpdateUserActivity", "Selected Dishes: " + dishSelections.toString());
 	}
 
 	public void updateUser() {
@@ -326,11 +350,11 @@ public class UpdateUserActivity extends AppCompatActivity {
 			return;
 		}
 
-		User user = createUserFromInput();
+		UserDTO user = createUserFromInput();
 
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		String userJson = gson.toJson(user);
-		Log.d("UpdateUserActivity", "User JSON: " + userJson);
+		Log.d("UpdateUserActivity", "UserDTO JSON: " + userJson);
 
 		ApiService apiService = RetrofitClient.getApiService();
 		Call<ResponseBody> call = apiService.updateUser(userId, user);
@@ -341,6 +365,7 @@ public class UpdateUserActivity extends AppCompatActivity {
 				if (response.isSuccessful()) {
 					Log.d("UpdateUserActivity", "Update Successful: " + response.body().toString());
 					setFieldsEditable(false);
+					logout();
 					updateSuccessDialog();
 				} else {
 					try {
@@ -361,10 +386,11 @@ public class UpdateUserActivity extends AppCompatActivity {
 	}
 
 	private boolean validateInputs() {
+		// Add input validation logic here
 		return true;
 	}
 
-	private User createUserFromInput() {
+	private UserDTO createUserFromInput() {
 		String name = nameText.getText().toString();
 		String username = usernameText.getText().toString();
 		String password = passwordEditText.getText().toString();
@@ -377,7 +403,7 @@ public class UpdateUserActivity extends AppCompatActivity {
 		List<String> selectedAllergies = getSelectedAllergies();
 		List<String> selectedDishes = getSelectedDishes();
 
-		User user = new User();
+		UserDTO user = new UserDTO();
 		user.setName(name);
 		user.setUsername(username);
 		user.setPassword(password);
@@ -398,7 +424,7 @@ public class UpdateUserActivity extends AppCompatActivity {
 			return "Male";
 		} else if (selectedId == R.id.genderOption2) {
 			return "Female";
-		} else if (selectedId == R.id.genderOption3){
+		} else if (selectedId == R.id.genderOption3) {
 			return "Other";
 		} else {
 			return "";
@@ -466,5 +492,15 @@ public class UpdateUserActivity extends AppCompatActivity {
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivity(intent);
 		finish();
+	}
+
+	private void logout() {
+		SharedPreferences.Editor sessionEditor = userSessionPreferences.edit();
+		sessionEditor.clear();
+		sessionEditor.apply();
+
+		SharedPreferences.Editor userEditor = userPreferences.edit();
+		userEditor.clear();
+		userEditor.apply();
 	}
 }

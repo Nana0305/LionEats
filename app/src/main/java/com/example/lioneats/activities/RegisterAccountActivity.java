@@ -24,7 +24,7 @@ import com.example.lioneats.R;
 import com.example.lioneats.api.ApiService;
 import com.example.lioneats.models.Allergy;
 import com.example.lioneats.models.Dish;
-import com.example.lioneats.models.User;
+import com.example.lioneats.models.UserDTO;
 import com.example.lioneats.utils.RetrofitClient;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -165,11 +165,11 @@ public class RegisterAccountActivity extends AppCompatActivity {
 			return;
 		}
 
-		User user = createUserFromInput();
+		UserDTO user = createUserFromInput();
 
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		String userJson = gson.toJson(user);
-		Log.d("RegisterAccountActivity", "User JSON: " + userJson);
+		Log.d("RegisterAccountActivity", "UserDTO JSON: " + userJson);
 
 		ApiService apiService = RetrofitClient.getApiService();
 		Call<ResponseBody> call = apiService.registerUser(user);
@@ -203,7 +203,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
 		return true;
 	}
 
-	private User createUserFromInput() {
+	private UserDTO createUserFromInput() {
 		String name = nameText.getText().toString();
 		String username = usernameText.getText().toString();
 		String password = passwordText.getText().toString();
@@ -216,7 +216,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
 		List<String> selectedAllergies = getSelectedAllergies();
 		List<String> selectedDishes = getSelectedDishes();
 
-		User user = new User();
+		UserDTO user = new UserDTO();
 		user.setName(name);
 		user.setUsername(username);
 		user.setPassword(password);

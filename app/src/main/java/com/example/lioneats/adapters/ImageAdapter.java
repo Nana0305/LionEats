@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.lioneats.R;
 import com.example.lioneats.models.Dish;
 import com.squareup.picasso.Picasso;
@@ -40,9 +41,12 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
 	@Override
 	public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
 		Dish dish = dishList.get(position);
-		Picasso.get()
-				.load(dish.getImageUrl())
+		String imageUrl = dish.getImageUrl();
+
+		Glide.with(holder.imageView.getContext())
+				.load(imageUrl)
 				.placeholder(R.drawable.default_image)
+				.error(R.drawable.default_image)
 				.into(holder.imageView);
 		holder.imageView.setOnClickListener(v -> onItemClickListener.onItemClick(position));
 	}

@@ -1,23 +1,21 @@
 package com.example.lioneats.dtos;
 
 import com.google.gson.annotations.SerializedName;
+
+import java.io.Serializable;
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.io.Serializable;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PhotoDTO implements Serializable {
+public class OpeningHourDTO implements Serializable{
 	private static final long serialVersionUID = 1L;
 
-	@SerializedName("photo_reference")
-	private String photoReference;
+	@SerializedName("weekday_text")
+	private List<String> weekdayText;
 
-	@SerializedName("height")
-	private int height;
-
-	@SerializedName("width")
-	private int width;
 }

@@ -1,12 +1,19 @@
 package com.example.lioneats.dtos;
 
 import com.google.gson.annotations.SerializedName;
+
+import java.io.Serializable;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public class ShopDTO {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ShopDTO implements Serializable{
 
-	@SerializedName("keyword")
-	private String keyword;
+	private static final long serialVersionUID = 1L;
 
 	@SerializedName("place_id")
 	private String placeId;
@@ -36,7 +43,7 @@ public class ShopDTO {
 	private int userRatingsTotal;
 
 	@SerializedName("opening_hours")
-	private PlaceOpeningHoursDTO openingHours;
+	private OpeningHourDTO openingHours;
 
 	@SerializedName("reviews")
 	private List<ReviewDTO> reviews;
@@ -44,108 +51,36 @@ public class ShopDTO {
 	@SerializedName("photos")
 	private List<PhotoDTO> photos;
 
-	public String getName() {
-		return name;
+	private String keyWord;
+
+	@SerializedName("geometry")
+	private GeometryDTO geometry;
+
+	public double getLatitude() {
+		return getGeometry() != null && getGeometry().getLocation() != null ? getGeometry().getLocation().getLatitude() : 0;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public double getLongitude() {
+		return getGeometry() != null && getGeometry().getLocation() != null ? getGeometry().getLocation().getLongitude() : 0;
 	}
 
-	public String getFormattedAddress() {
-		return formattedAddress;
+	public void setLatitude(double latitude) {
+		if (this.getGeometry() != null && this.getGeometry().getLocation() != null) {
+			this.getGeometry().getLocation().setLatitude(latitude);
+		}
 	}
 
-	public void setFormattedAddress(String formattedAddress) {
-		this.formattedAddress = formattedAddress;
+	public void setLongitude(double longitude) {
+		if (this.getGeometry() != null && this.getGeometry().getLocation() != null) {
+			this.getGeometry().getLocation().setLongitude(longitude);
+		}
 	}
 
-	public String getFormattedPhoneNumber() {
-		return formattedPhoneNumber;
+	public GeometryDTO getGeometry() {
+		return geometry;
 	}
 
-	public void setFormattedPhoneNumber(String formattedPhoneNumber) {
-		this.formattedPhoneNumber = formattedPhoneNumber;
-	}
-
-	public double getRating() {
-		return rating;
-	}
-
-	public void setRating(double rating) {
-		this.rating = rating;
-	}
-
-	public int getPriceLevel() {
-		return priceLevel;
-	}
-
-	public void setPriceLevel(int priceLevel) {
-		this.priceLevel = priceLevel;
-	}
-
-	public String getWebsiteUrl() {
-		return websiteUrl;
-	}
-
-	public void setWebsiteUrl(String websiteUrl) {
-		this.websiteUrl = websiteUrl;
-	}
-
-	public int getUserRatingsTotal() {
-		return userRatingsTotal;
-	}
-
-	public void setUserRatingsTotal(int userRatingsTotal) {
-		this.userRatingsTotal = userRatingsTotal;
-	}
-
-	public PlaceOpeningHoursDTO getOpeningHours() {
-		return openingHours;
-	}
-
-	public void setOpeningHours(PlaceOpeningHoursDTO openingHours) {
-		this.openingHours = openingHours;
-	}
-
-	public List<ReviewDTO> getReviews() {
-		return reviews;
-	}
-
-	public void setReviews(List<ReviewDTO> reviews) {
-		this.reviews = reviews;
-	}
-
-	public List<PhotoDTO> getPhotos() {
-		return photos;
-	}
-
-	public void setPhotos(List<PhotoDTO> photos) {
-		this.photos = photos;
-	}
-
-	public String getGoogleUrl() {
-		return googleUrl;
-	}
-
-	public void setGoogleUrl(String googleUrl) {
-		this.googleUrl = googleUrl;
-	}
-
-	public String getKeyword() {
-		return keyword;
-	}
-
-	public void setKeyword(String keyword) {
-		this.keyword = keyword;
-	}
-
-	public String getPlaceId() {
-		return placeId;
-	}
-
-	public void setPlaceId(String placeId) {
-		this.placeId = placeId;
+	public void setGeometry(GeometryDTO geometry) {
+		this.geometry = geometry;
 	}
 }
-

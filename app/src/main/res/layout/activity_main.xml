@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="100dp" />
 
-    <!-- User Home Specific Layout -->
+    <!-- UserDTO Home Specific Layout -->
     <LinearLayout
         android:id="@+id/userHomeLayout"
         android:layout_width="match_parent"
@@ -27,7 +27,8 @@
             android:gravity="start"
             android:orientation="horizontal"
             android:baselineAligned="false">
-            <!-- Spinners for User Home -->
+
+            <!-- Spinners for UserDTO Home -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -44,6 +45,7 @@
                     android:layout_height="35dp"
                     android:background="@drawable/spinner_background"/>
             </LinearLayout>
+
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -60,6 +62,7 @@
                     android:layout_height="35dp"
                     android:background="@drawable/spinner_background"/>
             </LinearLayout>
+
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -76,22 +79,7 @@
                     android:layout_height="35dp"
                     android:background="@drawable/spinner_background"/>
             </LinearLayout>
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Timing"
-                    android:textAppearance="?android:attr/textAppearanceMedium"/>
-                <Spinner
-                    android:id="@+id/spinnerTiming"
-                    android:layout_width="match_parent"
-                    android:layout_height="35dp"
-                    android:background="@drawable/spinner_background"/>
-            </LinearLayout>
+
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -103,11 +91,37 @@
                     android:text="Allergy"
                     android:textAppearance="?android:attr/textAppearanceMedium"/>
                 <Spinner
-                    android:id="@+id/spinnerAllergen"
+                    android:id="@+id/spinnerAllergy"
                     android:layout_width="match_parent"
                     android:layout_height="35dp"
                     android:background="@drawable/spinner_background"/>
             </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.8"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Rating"
+                    android:textAppearance="?android:attr/textAppearanceMedium"/>
+                <Spinner
+                    android:id="@+id/spinnerRating"
+                    android:layout_width="match_parent"
+                    android:layout_height="35dp"
+                    android:background="@drawable/spinner_background"/>
+            </LinearLayout>
+
+            <!-- Refresh Button -->
+            <Button
+                android:id="@+id/refreshBtn"
+                android:layout_width="0dp"
+                android:layout_height="65dp"
+                android:layout_weight="1"
+                android:layout_gravity="center_vertical"
+                android:text="Go"/>
         </LinearLayout>
     </LinearLayout>
 
@@ -116,14 +130,14 @@
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="200dp"
-        android:layout_marginVertical="10dp"/>
+        android:layout_marginVertical="5dp"/>
 
-    <SearchView
-        android:layout_width="match_parent"
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:iconifiedByDefault="false"
-        android:queryHint="Keyword search"
-        android:layout_marginVertical="10dp"/>
+        android:layout_gravity="center"
+        android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"

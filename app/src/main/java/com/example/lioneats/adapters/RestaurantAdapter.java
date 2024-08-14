@@ -1,8 +1,7 @@
 package com.example.lioneats.adapters;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,20 +11,13 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.lioneats.R;
 import com.example.lioneats.activities.ShopDetailsActivity;
-import com.example.lioneats.api.FeedApi;
+import com.example.lioneats.dtos.PhotoDTO;
 import com.example.lioneats.dtos.ShopDTO;
-import com.example.lioneats.utils.RetrofitService;
 
-import java.io.InputStream;
 import java.util.List;
-
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
 
 public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.RestaurantViewHolder> {
 
@@ -44,42 +36,45 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 
 	@Override
 	public void onBindViewHolder(@NonNull RestaurantViewHolder holder, int position) {
-		FeedApi feedApi = RetrofitService.getInstance().create(FeedApi.class);
 		ShopDTO restaurant = restaurantList.get(position);
 
-		holder.nameTextView.setText(restaurant.getName());
-		holder.addressTextView.setText(restaurant.getFormattedAddress());
-		holder.ratingTextView.setText(String.valueOf(restaurant.getRating()));
-		holder.keyTextView.setText(String.valueOf(restaurant.getKeyword()));
+		String name = restaurant.getName() != null ? restaurant.getName() : "Unknown";
+		holder.nameTextView.setText(name);
+
+		String address = restaurant.getFormattedAddress() != null ? restaurant.getFormattedAddress() : "Unknown";
+		holder.addressTextView.setText(address);
+
+		String rating = restaurant.getRating() != 0 ? String.valueOf(restaurant.getRating()) : "Unknown";
+		holder.ratingTextView.setText(rating);
+
+		String key = restaurant.getKeyWord() != null ? restaurant.getKeyWord() : "Unknown";
+		holder.keyTextView.setText(key);
+
+		String price = restaurant.getPriceLevel() != 0 ? getPriceLevel(restaurant.getPriceLevel()) : "Unknown";
+		holder.priceTextView.setText(price);
 
 		if (restaurant.getPhotos() != null && !restaurant.getPhotos().isEmpty()) {
-			Call<ResponseBody> photoUrlCall = feedApi.getPhoto(restaurant.getPhotos().get(0).getPhotoReference());
+			PhotoDTO photo = restaurant.getPhotos().get(0);
+			String photoUrl = photo.getPhotoReference();
 
-			photoUrlCall.enqueue(new Callback<ResponseBody>() {
-				@Override
-				public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-					if (response.isSuccessful() && response.body() != null) {
-						InputStream inputStream = response.body().byteStream();
-						Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-						holder.photoImageView.setImageBitmap(bitmap);
-					} else {
-						holder.photoImageView.setImageResource(R.drawable.logo);
-					}
-				}
+			Log.d("RestaurantAdapter", "Photo URL for " + restaurant.getName() + ": " + photoUrl);
 
-				@Override
-				public void onFailure(Call<ResponseBody> call, Throwable t) {
-					holder.photoImageView.setImageResource(R.drawable.logo);
-				}
-			});
+			if (photoUrl != null && !photoUrl.isEmpty()) {
+				Glide.with(holder.photoImageView.getContext())
+						.load(photoUrl)
+						.placeholder(R.drawable.default_image)
+						.error(R.drawable.default_image)
+						.into(holder.photoImageView);
+			} else {
+				holder.photoImageView.setImageResource(R.drawable.default_image);
+			}
 		} else {
-			holder.photoImageView.setImageResource(R.drawable.logo);
+			holder.photoImageView.setImageResource(R.drawable.default_image);
 		}
 
-		// Set click listener to navigate to ShopDetailsActivity
 		holder.itemView.setOnClickListener(v -> {
 			Intent intent = new Intent(holder.itemView.getContext(), ShopDetailsActivity.class);
-			intent.putExtra("placeId", restaurant.getPlaceId());
+			intent.putExtra("shop", restaurant);
 			holder.itemView.getContext().startActivity(intent);
 		});
 	}
@@ -95,6 +90,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 		TextView addressTextView;
 		TextView ratingTextView;
 		TextView keyTextView;
+		TextView priceTextView;
 		ImageView photoImageView;
 
 		public RestaurantViewHolder(@NonNull View itemView) {
@@ -103,8 +99,25 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 			addressTextView = itemView.findViewById(R.id.restaurant_address);
 			ratingTextView = itemView.findViewById(R.id.restaurant_rating);
 			keyTextView = itemView.findViewById(R.id.restaurant_key);
+			priceTextView = itemView.findViewById(R.id.restaurant_price);
 			photoImageView = itemView.findViewById(R.id.restaurant_photo);
 		}
 	}
+
+	private String getPriceLevel(int priceLevel) {
+		switch (priceLevel) {
+			case 1:
+				return "$";
+			case 2:
+				return "$$";
+			case 3:
+				return "$$$";
+			case 4:
+				return "$$$$";
+			default:
+				return "Unknown";
+		}
+	}
 }
+
 

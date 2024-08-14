@@ -1,17 +1,17 @@
 package com.example.lioneats.dtos;
 
 import com.google.gson.annotations.SerializedName;
-import java.io.Serializable;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ShopDetailDTO implements Serializable {
+public class GeometryDTO implements Serializable{
+	private static final long serialVersionUID = 1L; // Optional for version control
 
-	@SerializedName("result")
-	private ShopDTO shopDetail;
+	@SerializedName("location")
+	private LocationDTO location;
 }
-
