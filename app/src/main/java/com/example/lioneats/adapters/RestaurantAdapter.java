@@ -14,69 +14,68 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.lioneats.R;
 import com.example.lioneats.activities.ShopDetailsActivity;
-import com.example.lioneats.dtos.PhotoDTO;
 import com.example.lioneats.dtos.ShopDTO;
 
 import java.util.List;
 
 public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.RestaurantViewHolder> {
 
-	private List<ShopDTO> restaurantList;
+	private static final String TAG = "RestaurantAdapter";
+	private final List<ShopDTO> restaurantList;
+	private final String username;
 
-	public RestaurantAdapter(List<ShopDTO> restaurantList) {
-		this.restaurantList = restaurantList;
+	public RestaurantAdapter(List<ShopDTO> restaurantList, String username) {
+		this.restaurantList = restaurantList != null ? restaurantList : List.of();
+		this.username = username;
 	}
 
 	@NonNull
 	@Override
 	public RestaurantViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 		View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_restaurant, parent, false);
-		return new RestaurantViewHolder(view);
+		return new RestaurantViewHolder(view, username);
 	}
 
 	@Override
 	public void onBindViewHolder(@NonNull RestaurantViewHolder holder, int position) {
+		if(restaurantList.isEmpty()) {
+			Log.e(TAG, "Attempted to bind view holder, but the restaurant list is empty.");
+			return;
+		}
+
 		ShopDTO restaurant = restaurantList.get(position);
+		holder.bind(restaurant);
 
-		String name = restaurant.getName() != null ? restaurant.getName() : "Unknown";
-		holder.nameTextView.setText(name);
+		holder.nameTextView.setText(restaurant.getName() != null ? restaurant.getName() : "Unknown");
+		holder.addressTextView.setText(restaurant.getFormattedAddress() != null ? restaurant.getFormattedAddress() : "Unknown");
+		holder.ratingTextView.setText(restaurant.getRating() != 0 ? String.valueOf(restaurant.getRating()) : "Unknown");
+		holder.keyTextView.setText(restaurant.getKeyWord() != null ? restaurant.getKeyWord() : "Unknown");
+		holder.priceTextView.setText(getPriceLevel(restaurant.getPriceLevel()));
 
-		String address = restaurant.getFormattedAddress() != null ? restaurant.getFormattedAddress() : "Unknown";
-		holder.addressTextView.setText(address);
-
-		String rating = restaurant.getRating() != 0 ? String.valueOf(restaurant.getRating()) : "Unknown";
-		holder.ratingTextView.setText(rating);
-
-		String key = restaurant.getKeyWord() != null ? restaurant.getKeyWord() : "Unknown";
-		holder.keyTextView.setText(key);
-
-		String price = restaurant.getPriceLevel() != 0 ? getPriceLevel(restaurant.getPriceLevel()) : "Unknown";
-		holder.priceTextView.setText(price);
-
+		String photoUrl = null;
 		if (restaurant.getPhotos() != null && !restaurant.getPhotos().isEmpty()) {
-			PhotoDTO photo = restaurant.getPhotos().get(0);
-			String photoUrl = photo.getPhotoReference();
+			photoUrl = restaurant.getPhotos().get(0).getPhotoReference();
+		}
 
-			Log.d("RestaurantAdapter", "Photo URL for " + restaurant.getName() + ": " + photoUrl);
-
-			if (photoUrl != null && !photoUrl.isEmpty()) {
-				Glide.with(holder.photoImageView.getContext())
-						.load(photoUrl)
-						.placeholder(R.drawable.default_image)
-						.error(R.drawable.default_image)
-						.into(holder.photoImageView);
-			} else {
-				holder.photoImageView.setImageResource(R.drawable.default_image);
-			}
+		if (photoUrl != null && !photoUrl.isEmpty()) {
+			Glide.with(holder.photoImageView.getContext())
+					.load(photoUrl)
+					.placeholder(R.drawable.default_image)
+					.error(R.drawable.default_image)
+					.into(holder.photoImageView);
 		} else {
 			holder.photoImageView.setImageResource(R.drawable.default_image);
 		}
 
-		holder.itemView.setOnClickListener(v -> {
-			Intent intent = new Intent(holder.itemView.getContext(), ShopDetailsActivity.class);
-			intent.putExtra("shop", restaurant);
-			holder.itemView.getContext().startActivity(intent);
-		});
+		if (position < restaurantList.size() - 1) {
+			String nextPhotoUrl = restaurantList.get(position + 1).getPhotos() != null ?
+					restaurantList.get(position + 1).getPhotos().get(0).getPhotoReference() : null;
+			if (nextPhotoUrl != null && !nextPhotoUrl.isEmpty()) {
+				Glide.with(holder.photoImageView.getContext())
+						.load(nextPhotoUrl)
+						.preload();
+			}
+		}
 	}
 
 	@Override
@@ -93,7 +92,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 		TextView priceTextView;
 		ImageView photoImageView;
 
-		public RestaurantViewHolder(@NonNull View itemView) {
+		public RestaurantViewHolder(@NonNull View itemView, String username) {
 			super(itemView);
 			nameTextView = itemView.findViewById(R.id.restaurant_name);
 			addressTextView = itemView.findViewById(R.id.restaurant_address);
@@ -101,6 +100,20 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 			keyTextView = itemView.findViewById(R.id.restaurant_key);
 			priceTextView = itemView.findViewById(R.id.restaurant_price);
 			photoImageView = itemView.findViewById(R.id.restaurant_photo);
+
+			if (username != null) {
+				itemView.setOnClickListener(v -> {
+					ShopDTO shop = (ShopDTO) itemView.getTag();
+
+					Intent intent = new Intent(itemView.getContext(), ShopDetailsActivity.class);
+					intent.putExtra("shop", shop);
+					itemView.getContext().startActivity(intent);
+				});
+			}
+		}
+
+		public void bind(ShopDTO shop) {
+			itemView.setTag(shop);
 		}
 	}
 
@@ -119,5 +132,3 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 		}
 	}
 }
-
-

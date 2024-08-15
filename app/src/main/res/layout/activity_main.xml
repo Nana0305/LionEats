@@ -10,7 +10,7 @@
     <FrameLayout
         android:id="@+id/headerFragmentContainer"
         android:layout_width="match_parent"
-        android:layout_height="100dp" />
+        android:layout_height="75dp" />
 
     <!-- UserDTO Home Specific Layout -->
     <LinearLayout
@@ -23,107 +23,136 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginVertical="10dp"
+            android:layout_marginVertical="3dp"
             android:gravity="start"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:baselineAligned="false">
 
-            <!-- Spinners for UserDTO Home -->
+            <!-- First Row: Allergy, Budget, Rating Spinners, and Refresh Button -->
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="wrap_content"
+                android:orientation="horizontal"
+                android:baselineAligned="false"
+                android:layout_marginVertical="2dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Dish"
-                    android:textAppearance="?android:attr/textAppearanceMedium"/>
-                <Spinner
-                    android:id="@+id/spinnerDish"
-                    android:layout_width="match_parent"
-                    android:layout_height="35dp"
-                    android:background="@drawable/spinner_background"/>
+                    android:layout_weight="1.2"
+                    android:orientation="vertical"
+                    android:layout_marginEnd="2dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Allergy"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:layout_marginBottom="2dp"/>
+                    <Spinner
+                        android:id="@+id/spinnerAllergy"
+                        android:layout_width="match_parent"
+                        android:layout_height="35dp"
+                        android:background="@drawable/spinner_background"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginEnd="2dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Budget"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:layout_marginBottom="2dp"/>
+                    <Spinner
+                        android:id="@+id/spinnerBudget"
+                        android:layout_width="match_parent"
+                        android:layout_height="35dp"
+                        android:background="@drawable/spinner_background"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginEnd="4dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Rating"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:layout_marginBottom="2dp"/>
+                    <Spinner
+                        android:id="@+id/spinnerRating"
+                        android:layout_width="match_parent"
+                        android:layout_height="35dp"
+                        android:background="@drawable/spinner_background"/>
+                </LinearLayout>
+
+                <!-- Refresh Button -->
+                <Button
+                    android:id="@+id/refreshBtn"
+                    android:layout_width="70dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="4dp"
+                    android:layout_gravity="center_vertical"
+                    android:text="Go"/>
             </LinearLayout>
 
+            <!-- Second Row: Dish and Location Spinners -->
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Location"
-                    android:textAppearance="?android:attr/textAppearanceMedium"/>
-                <Spinner
-                    android:id="@+id/spinnerLocation"
-                    android:layout_width="match_parent"
-                    android:layout_height="35dp"
-                    android:background="@drawable/spinner_background"/>
-            </LinearLayout>
+                android:layout_marginTop="2dp"
+                android:orientation="horizontal"
+                android:baselineAligned="false">
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Budget"
-                    android:textAppearance="?android:attr/textAppearanceMedium"/>
-                <Spinner
-                    android:id="@+id/spinnerBudget"
-                    android:layout_width="match_parent"
-                    android:layout_height="35dp"
-                    android:background="@drawable/spinner_background"/>
-            </LinearLayout>
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginEnd="2dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Dish"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:layout_marginBottom="2dp"/>
+                    <Spinner
+                        android:id="@+id/spinnerDish"
+                        android:layout_width="match_parent"
+                        android:layout_height="35dp"
+                        android:background="@drawable/spinner_background"/>
+                </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Allergy"
-                    android:textAppearance="?android:attr/textAppearanceMedium"/>
-                <Spinner
-                    android:id="@+id/spinnerAllergy"
-                    android:layout_width="match_parent"
-                    android:layout_height="35dp"
-                    android:background="@drawable/spinner_background"/>
-            </LinearLayout>
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginEnd="2dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Location"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:layout_marginBottom="2dp"/>
+                    <Spinner
+                        android:id="@+id/spinnerLocation"
+                        android:layout_width="match_parent"
+                        android:layout_height="35dp"
+                        android:background="@drawable/spinner_background"/>
+                </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.8"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Rating"
-                    android:textAppearance="?android:attr/textAppearanceMedium"/>
-                <Spinner
-                    android:id="@+id/spinnerRating"
-                    android:layout_width="match_parent"
-                    android:layout_height="35dp"
-                    android:background="@drawable/spinner_background"/>
             </LinearLayout>
-
-            <!-- Refresh Button -->
-            <Button
-                android:id="@+id/refreshBtn"
-                android:layout_width="0dp"
-                android:layout_height="65dp"
-                android:layout_weight="1"
-                android:layout_gravity="center_vertical"
-                android:text="Go"/>
         </LinearLayout>
     </LinearLayout>
+
 
     <!-- Shared Layout -->
     <androidx.viewpager2.widget.ViewPager2

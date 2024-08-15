@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SearchRequestDTO implements Serializable {
 	private List<String> location;
-	//private boolean isSpicy;
 	private List<String> allergies;
 	private String budget;
 	private List<String> dishes;

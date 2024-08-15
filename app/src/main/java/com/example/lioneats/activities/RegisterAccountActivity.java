@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,20 +21,21 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.gridlayout.widget.GridLayout;
 
+import com.bumptech.glide.Glide;
 import com.example.lioneats.R;
 import com.example.lioneats.api.ApiService;
 import com.example.lioneats.models.Allergy;
 import com.example.lioneats.models.Dish;
 import com.example.lioneats.models.UserDTO;
-import com.example.lioneats.utils.RetrofitClient;
+import com.example.lioneats.api.RetrofitClient;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import okhttp3.ResponseBody;
@@ -42,8 +44,11 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class RegisterAccountActivity extends AppCompatActivity {
+	private static final String TAG = "RegisterAccountActivity";
 	private EditText nameText, usernameText, passwordText, emailText, ageText, countryText;
 	private RadioGroup genderOptions, budgetOptions, spicyOptions;
+	private LinearLayout dishPreferencesSection, allergySection;
+	private TextView setAllergiesBtn;
 	private GridLayout dishContainer, allergyOptionsGrid;
 	private List<Dish> dishList = new ArrayList<>();
 	private List<Allergy> allergyList = new ArrayList<>();
@@ -77,8 +82,22 @@ public class RegisterAccountActivity extends AppCompatActivity {
 		});
 		Button registerBtn = findViewById(R.id.registerBtn);
 		registerBtn.setOnClickListener(v -> registerUser());
-	}
 
+		allergySection = findViewById(R.id.allergySection);
+		dishPreferencesSection = findViewById(R.id.dishPreferencesSection);
+		dishPreferencesSection.setEnabled(false);
+		dishPreferencesSection.setBackground(ContextCompat.getDrawable(this, R.drawable.disabled_background));
+
+		setAllergiesBtn = findViewById(R.id.setAllergiesBtn);
+		setAllergiesBtn.setOnClickListener(v -> {
+			for (CheckBox checkBox : allergyCheckboxes) {
+				checkBox.setEnabled(false);
+			}
+			allergySection.setBackground(ContextCompat.getDrawable(this, R.drawable.disabled_background));
+			fetchSafeDishes();
+			dishPreferencesSection.setEnabled(true);
+		});
+	}
 
 	private void loadAllergiesFromPreferences() {
 		SharedPreferences allergyListPreferences = getSharedPreferences("allergy_list", MODE_PRIVATE);
@@ -87,7 +106,6 @@ public class RegisterAccountActivity extends AppCompatActivity {
 		if (allergyJson != null) {
 			Type listType = new TypeToken<List<Allergy>>() {}.getType();
 			allergyList = new Gson().fromJson(allergyJson, listType);
-
 			populateAllergyCheckBoxes();
 		} else {
 			Toast.makeText(this, "No allergies found", Toast.LENGTH_SHORT).show();
@@ -95,7 +113,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
 	}
 
 	private void populateAllergyCheckBoxes() {
-		allergyOptionsGrid.removeAllViews(); // Clear existing views
+		allergyOptionsGrid.removeAllViews();
 
 		for (Allergy allergy : allergyList) {
 			CheckBox checkBox = new CheckBox(this);
@@ -103,13 +121,69 @@ public class RegisterAccountActivity extends AppCompatActivity {
 			checkBox.setTextSize(15);
 			checkBox.setId(View.generateViewId());
 
-			// Add CheckBox to GridLayout
 			GridLayout.LayoutParams params = new GridLayout.LayoutParams();
 			params.setMargins(8, 8, 8, 8);
 			checkBox.setLayoutParams(params);
 
-			allergyCheckboxes.add(checkBox); // Keep track of created checkboxes
+			allergyCheckboxes.add(checkBox);
 			allergyOptionsGrid.addView(checkBox);
+		}
+	}
+
+	private void fetchSafeDishes() {
+		List<String> selectedAllergies;
+		selectedAllergies = getSelectedAllergies();
+
+		ApiService apiService = RetrofitClient.getApiServiceWithoutToken();
+		Call<List<Dish>> call = apiService.getSafeDishes(selectedAllergies);
+
+		call.enqueue(new Callback<List<Dish>>() {
+			@Override
+			public void onResponse(Call<List<Dish>> call, Response<List<Dish>> response) {
+				if (response.isSuccessful() && response.body() != null) {
+					List<Dish> safeDishes = response.body();
+					updateDishSelectionUI(safeDishes);
+				} else {
+					Toast.makeText(RegisterAccountActivity.this, "Failed to fetch safe dishes", Toast.LENGTH_SHORT).show();
+				}
+			}
+
+			@Override
+			public void onFailure(Call<List<Dish>> call, Throwable t) {
+				Log.e(TAG, "Network Error: ", t);
+				Toast.makeText(RegisterAccountActivity.this, "Network Error!", Toast.LENGTH_SHORT).show();
+			}
+		});
+	}
+
+	private void updateDishSelectionUI(List<Dish> safeDishes) {
+		dishPreferencesSection.setEnabled(true);
+		dishPreferencesSection.setBackground(ContextCompat.getDrawable(this, R.drawable.selector_background));
+		dishContainer.removeAllViews();
+
+		for (Dish dish : dishList) {
+			View dishView = LayoutInflater.from(this).inflate(R.layout.item_dish, dishContainer, false);
+			ImageView dishImage = dishView.findViewById(R.id.dishImage);
+			TextView dishName = dishView.findViewById(R.id.dishName);
+
+			Glide.with(this)
+					.load(dish.getImageUrl())
+					.placeholder(R.drawable.default_image)
+					.error(R.drawable.default_image)
+					.into(dishImage);
+
+			dishName.setText(dish.getDishDetailName());
+
+			if (safeDishes.contains(dish)) {
+				dishView.setOnClickListener(v -> toggleDishSelection(dishView, dish));
+				dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selector_background));
+				dishView.setClickable(true);
+			} else {
+				dishView.setOnClickListener(null);
+				dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.disabled_background));
+				dishView.setClickable(false);
+			}
+			dishContainer.addView(dishView);
 		}
 	}
 
@@ -123,22 +197,22 @@ public class RegisterAccountActivity extends AppCompatActivity {
 			populateDishPreferences();
 		} else {
 			Toast.makeText(this, "No dishes found", Toast.LENGTH_SHORT).show();
-			Log.e("RegisterAccountActivity", "No dishes found in SharedPreferences");
+			Log.e(TAG, "No dishes found in SharedPreferences");
 		}
 	}
 
 	private void populateDishPreferences() {
-		dishContainer.removeAllViews(); // Clear any existing views
+		dishContainer.removeAllViews();
 
 		for (Dish dish : dishList) {
 			View dishView = LayoutInflater.from(this).inflate(R.layout.item_dish, dishContainer, false);
-
 			ImageView dishImage = dishView.findViewById(R.id.dishImage);
 			TextView dishName = dishView.findViewById(R.id.dishName);
 
-			Picasso.get()
+			Glide.with(this)
 					.load(dish.getImageUrl())
-					.placeholder(R.drawable.default_image) // Optional: Placeholder image
+					.placeholder(R.drawable.default_image)
+					.error(R.drawable.default_image)
 					.into(dishImage);
 
 			dishName.setText(dish.getDishDetailName());
@@ -150,13 +224,13 @@ public class RegisterAccountActivity extends AppCompatActivity {
 	private void toggleDishSelection(View dishView, Dish dish) {
 		if (dishSelections.contains(dish)) {
 			dishSelections.remove(dish);
-			dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selector_background)); // Normal background
+			dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selector_background));
 		} else {
 			dishSelections.add(dish);
-			dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selected_background)); // Selected background
+			dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selected_background));
 		}
 
-		Log.d("RegisterAccountActivity", "Selected Dishes: " + dishSelections.toString());
+		Log.d(TAG, "Selected Dishes: " + dishSelections.toString());
 	}
 
 	public void registerUser() {
@@ -169,22 +243,22 @@ public class RegisterAccountActivity extends AppCompatActivity {
 
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		String userJson = gson.toJson(user);
-		Log.d("RegisterAccountActivity", "UserDTO JSON: " + userJson);
+		Log.d(TAG, "UserDTO JSON: " + userJson);
 
-		ApiService apiService = RetrofitClient.getApiService();
+		ApiService apiService = RetrofitClient.getApiServiceWithoutToken();
 		Call<ResponseBody> call = apiService.registerUser(user);
 
 		call.enqueue(new Callback<ResponseBody>() {
 			@Override
 			public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
 				if (response.isSuccessful()) {
-					Log.d("RegisterAccountActivity", "Registration Successful: " + response.body().toString());
+					Log.d(TAG, "Registration Successful: " + response.body().toString());
 					registerSuccessDialog();
 				} else {
 					try {
-						Log.e("RegisterAccountActivity", "Registration Failed: " + response.errorBody().string());
+						Log.e(TAG, "Registration Failed: " + response.errorBody().string());
 					} catch (IOException e) {
-						Log.e("RegisterAccountActivity", "Error parsing error response", e);
+						Log.e(TAG, "Error parsing error response", e);
 					}
 					Toast.makeText(RegisterAccountActivity.this, "Registration Failed!", Toast.LENGTH_SHORT).show();
 				}
@@ -192,21 +266,88 @@ public class RegisterAccountActivity extends AppCompatActivity {
 
 			@Override
 			public void onFailure(Call<ResponseBody> call, Throwable t) {
-				Log.e("RegisterAccountActivity", "Network Error: ", t);
+				Log.e(TAG, "Network Error: ", t);
 				Toast.makeText(RegisterAccountActivity.this, "Network Error!", Toast.LENGTH_SHORT).show();
 			}
 		});
 	}
 
 	private boolean validateInputs() {
-		// Add input validation logic here
-		return true;
+		boolean isValid = true;
+
+		String name = nameText.getText().toString().trim();
+		if (name.isEmpty()) {
+			nameText.setError("Name is required");
+			isValid = false;
+		} else if (name.length() > 100) {
+			nameText.setError("Name must be less than 100 characters");
+			isValid = false;
+		}
+
+		String username = usernameText.getText().toString().trim();
+		if (username.isEmpty()) {
+			usernameText.setError("Username is required");
+			isValid = false;
+		} else if (username.length() > 50) {
+			usernameText.setError("Username must be less than 50 characters");
+			isValid = false;
+		}
+
+		String password = passwordText.getText().toString().trim();
+		if (password.isEmpty()) {
+			passwordText.setError("Password is required");
+			isValid = false;
+		} else if (password.length() < 8) {
+			passwordText.setError("Password must be at least 8 characters");
+			isValid = false;
+		}
+
+		String email = emailText.getText().toString().trim();
+		if (email.isEmpty()) {
+			emailText.setError("Email is required");
+			isValid = false;
+		} else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+			emailText.setError("Email should be valid");
+			isValid = false;
+		}
+
+		String ageStr = ageText.getText().toString().trim();
+		if (ageStr.isEmpty()) {
+			ageText.setError("Age must be provided");
+			isValid = false;
+		} else {
+			try {
+				int age = Integer.parseInt(ageStr);
+				if (age < 0) {
+					ageText.setError("Age must be a positive number");
+					isValid = false;
+				} else if (age > 150) {
+					ageText.setError("Age must be less than or equal to 150");
+					isValid = false;
+				}
+			} catch (NumberFormatException e) {
+				ageText.setError("Invalid age");
+				isValid = false;
+			}
+		}
+
+		if (genderOptions.getCheckedRadioButtonId() == -1) {
+			Toast.makeText(this, "Gender is required", Toast.LENGTH_SHORT).show();
+			isValid = false;
+		}
+
+		if (budgetOptions.getCheckedRadioButtonId() == -1) {
+			Toast.makeText(this, "Preferred budget is required", Toast.LENGTH_SHORT).show();
+			isValid = false;
+		}
+
+		return isValid;
 	}
 
 	private UserDTO createUserFromInput() {
 		String name = nameText.getText().toString();
-		String username = usernameText.getText().toString();
-		String password = passwordText.getText().toString();
+		String username = usernameText.getText().toString().trim();
+		String password = passwordText.getText().toString().trim();
 		String email = emailText.getText().toString();
 		String country = countryText.getText().toString();
 		Integer age = Integer.parseInt(ageText.getText().toString());
@@ -237,7 +378,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
 			return "Male";
 		} else if (selectedId == R.id.genderOption2) {
 			return "Female";
-		} else if (selectedId == R.id.genderOption3){
+		} else if (selectedId == R.id.genderOption3) {
 			return "Other";
 		} else {
 			return "";
@@ -259,7 +400,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
 
 	private boolean getSpicyPreference() {
 		int selectedId = spicyOptions.getCheckedRadioButtonId();
-		return selectedId == R.id.spicyOption1; // Returns true if "Yes, of course!" is selected
+		return selectedId == R.id.spicyOption1;
 	}
 
 	private List<String> getSelectedAllergies() {
@@ -290,7 +431,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setView(dialogView);
-		builder.setCancelable(false); // Make the dialog non-cancelable
+		builder.setCancelable(false);
 
 		AlertDialog dialog = builder.create();
 		dialog.show();

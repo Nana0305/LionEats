@@ -27,7 +27,7 @@ import com.example.lioneats.api.ApiService;
 import com.example.lioneats.fragments.HeaderFragment;
 import com.example.lioneats.models.Dish;
 import com.example.lioneats.models.ML_feedback;
-import com.example.lioneats.utils.RetrofitClient;
+import com.example.lioneats.api.RetrofitClient;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
@@ -49,49 +49,74 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class ImageResultActivity extends AppCompatActivity {
+	private static final String TAG = "ImageResultActivity";
+
 	private ML_feedback feedback;
-	private ImageView imageView;
 	private TextView resultTextView, viewDishBtn, viewShopsBtn;
 	private ProgressBar progressBar;
-	private Spinner spinnerDishName;
 	private EditText remarksEditText;
-	private Button submitBtn;
 	private String selectedDishName;
-	private Uri imageUri;
 	private List<Dish> dishList;
+	private String jwtToken;
+	private Uri imageUri;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_image_result);
 
-		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-		transaction.replace(R.id.headerFragmentContainer, new HeaderFragment());
-		transaction.commit();
+		initializeUIComponents();
+		setupHeaderFragment();
 
+		jwtToken = getJwtToken();
+
+		List<String> dishNames = getDishNames();
+		setupSpinner(dishNames);
+
+		String imageUriString = getIntent().getStringExtra("imageUri");
+		if (imageUriString != null) {
+			imageUri = Uri.parse(imageUriString);
+			displayImage(imageUri);
+			uploadImage(imageUri);
+		}
+
+		setupSubmitButton();
+	}
+
+	private void initializeUIComponents() {
 		feedback = new ML_feedback();
-		imageView = findViewById(R.id.imageView);
 		resultTextView = findViewById(R.id.resultText);
 		progressBar = findViewById(R.id.progressBar);
 		progressBar.setVisibility(View.VISIBLE);
-		spinnerDishName = findViewById(R.id.spinnerDishName);
 		remarksEditText = findViewById(R.id.remarks);
-		submitBtn = findViewById(R.id.submitBtn);
-
 		viewDishBtn = findViewById(R.id.viewDishBtn);
 		viewShopsBtn = findViewById(R.id.viewShopsBtn);
+	}
 
-		List<String> dishNames = getDishNames();
-		ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-				android.R.layout.simple_spinner_item, dishNames);
+	private void setupHeaderFragment() {
+		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+		transaction.replace(R.id.headerFragmentContainer, new HeaderFragment());
+		transaction.commit();
+	}
 
+	private String getJwtToken() {
+		SharedPreferences userSessionPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
+		return userSessionPreferences.getString("jwt", "");
+	}
+
+	private void setupSpinner(List<String> dishNames) {
+		Spinner spinnerDishName = findViewById(R.id.spinnerDishName);
+		ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, dishNames);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		spinnerDishName.setAdapter(adapter);
+
 		spinnerDishName.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 			@Override
 			public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-				selectedDishName = parentView.getItemAtPosition(position).toString();
-				Toast.makeText(ImageResultActivity.this, "Selected: " + selectedDishName, Toast.LENGTH_SHORT).show();
+				selectedDishName = position == 0 ? null : parentView.getItemAtPosition(position).toString();
+				if (selectedDishName != null) {
+					Log.d(TAG, "Selected: " + selectedDishName);
+				}
 			}
 
 			@Override
@@ -99,91 +124,8 @@ public class ImageResultActivity extends AppCompatActivity {
 				selectedDishName = null;
 			}
 		});
-
-		Intent intent = getIntent();
-		String imageUriString = intent.getStringExtra("imageUri");
-		if (imageUriString != null) {
-			imageUri = Uri.parse(imageUriString);
-			imageView.setImageURI(imageUri);
-			uploadImage(imageUri);
-		}
-		submitBtn.setOnClickListener(v -> submitFeedback());
 	}
 
-	private void uploadImage(Uri imageUri) {
-		InputStream inputStream = null;
-		try {
-			inputStream = getContentResolver().openInputStream(imageUri);
-			byte[] bytes = new byte[inputStream.available()];
-			inputStream.read(bytes);
-
-			String mimeType = getContentResolver().getType(imageUri);
-			if (mimeType == null) {
-				mimeType = "image/jpeg";
-			}
-
-			RequestBody requestFile = RequestBody.create(MediaType.parse(mimeType), bytes);
-			MultipartBody.Part imagePart = MultipartBody.Part.createFormData("file", "image.jpg", requestFile);
-
-			ApiService apiService = RetrofitClient.getApiService();
-			Call<ResponseBody> call = apiService.uploadImage(imagePart);
-
-			call.enqueue(new Callback<ResponseBody>() {
-				@Override
-				public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-					progressBar.setVisibility(View.GONE);
-					try {
-						if (response.isSuccessful() && response.body() != null) {
-							String apiResponse = response.body().string();
-							Log.d("API Response", "Success response: " + apiResponse);
-
-							Gson gson = new Gson();
-							Type type = new TypeToken<Map<String, String>>() {}.getType();
-							Map<String, String> responseMap = gson.fromJson(apiResponse, type);
-
-							String predictedDish = responseMap.get("predictedDish");
-							String imageBlobUrl = responseMap.get("imageUrl");
-							feedback.setMl_result(predictedDish);
-							feedback.setImageBlobUrl(imageBlobUrl);
-
-							resultTextView.setText(predictedDish);
-							viewDishBtn.setClickable(true);
-							viewDishBtn.setOnClickListener(v -> viewDishDetail(predictedDish));
-							//viewShopsBtn.setClickable(true);
-							//viewShopsBtn.setOnClickListener(v -> viewShops(predictedDish));
-
-						} else {
-							Log.e("API Response", "Failed response: " + response.errorBody().string());
-							Toast.makeText(ImageResultActivity.this, "Upload failed: " + response.message(), Toast.LENGTH_SHORT).show();
-						}
-					} catch (IOException | JsonSyntaxException e) {
-						e.printStackTrace();
-						Log.e("API Response", "Exception during parsing or response: " + e.getMessage());
-						Toast.makeText(ImageResultActivity.this, "Failed to parse response", Toast.LENGTH_SHORT).show();
-					}
-				}
-
-				@Override
-				public void onFailure(Call<ResponseBody> call, Throwable t) {
-					progressBar.setVisibility(View.GONE);
-					Log.e("API Connection Error", "onFailure: " + t.getMessage());
-					Toast.makeText(ImageResultActivity.this, "Image upload failed", Toast.LENGTH_SHORT).show();
-				}
-			});
-		} catch (IOException e) {
-			progressBar.setVisibility(View.GONE);
-			e.printStackTrace();
-			Toast.makeText(ImageResultActivity.this, "Failed to open image", Toast.LENGTH_SHORT).show();
-		} finally {
-			if (inputStream != null) {
-				try {
-					inputStream.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
 	private List<String> getDishNames() {
 		SharedPreferences dishListPreferences = getSharedPreferences("dish_list", MODE_PRIVATE);
 		String jsonDishes = dishListPreferences.getString("dishes", "");
@@ -193,32 +135,114 @@ public class ImageResultActivity extends AppCompatActivity {
 		dishList = gson.fromJson(jsonDishes, listType);
 
 		List<String> dishNames = new ArrayList<>();
+		dishNames.add("Select the correct dish");
 		for (Dish dish : dishList) {
 			dishNames.add(dish.getDishDetailName());
 		}
 		return dishNames;
 	}
 
-	private void viewDishDetail(String dishDetailName) {
-		int dishID = -1; // Default invalid ID
-		for (Dish dish : dishList) {
-			if (dish.getDishDetailName().equalsIgnoreCase(dishDetailName)) {
-				dishID = dish.getId();
-				break;
+	private void displayImage(Uri imageUri) {
+		ImageView imageView = findViewById(R.id.imageView);
+		imageView.setImageURI(imageUri);
+	}
+
+	private void uploadImage(Uri imageUri) {
+		try (InputStream inputStream = getContentResolver().openInputStream(imageUri)) {
+			byte[] bytes = new byte[inputStream.available()];
+			inputStream.read(bytes);
+
+			String mimeType = getContentResolver().getType(imageUri);
+			mimeType = (mimeType != null) ? mimeType : "image/jpeg";
+
+			RequestBody requestFile = RequestBody.create(MediaType.parse(mimeType), bytes);
+			MultipartBody.Part imagePart = MultipartBody.Part.createFormData("file", "image.jpg", requestFile);
+
+			Log.d(TAG, "JWT Token: " + jwtToken);
+			ApiService apiService = RetrofitClient.getApiService(jwtToken);
+
+			Log.d(TAG, "API Request: Uploading image to server");
+			Call<ResponseBody> call = apiService.uploadImage(imagePart);
+
+			call.enqueue(new ImageUploadCallback());
+		} catch (IOException e) {
+			progressBar.setVisibility(View.GONE);
+			Log.e(TAG, "Failed to open image: " + e.getMessage(), e);
+			Toast.makeText(this, "Failed to open image", Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	private class ImageUploadCallback implements Callback<ResponseBody> {
+		@Override
+		public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+			progressBar.setVisibility(View.GONE);
+			if (response.isSuccessful() && response.body() != null) {
+				handleSuccessfulImageUpload(response);
+			} else {
+				String errorBody = "";
+				try {
+					if (response.errorBody() != null) {
+						errorBody = response.errorBody().string();
+					}
+				} catch (IOException e) {
+					Log.e(TAG, "Error reading error body: " + e.getMessage(), e);
+				}
+				Log.e(TAG, "API Error: " + response.message() + " | Error Body: " + errorBody);
+				Toast.makeText(ImageResultActivity.this, "Upload failed: " + response.message(), Toast.LENGTH_SHORT).show();
 			}
 		}
+		@Override
+		public void onFailure(Call<ResponseBody> call, Throwable t) {
+			progressBar.setVisibility(View.GONE);
+			Log.e(TAG, "Image upload failed: " + t.getMessage(), t);
+			Toast.makeText(ImageResultActivity.this, "Image upload failed", Toast.LENGTH_SHORT).show();
+		}
+	}
 
-		if (dishID != -1) { // Check if a valid dish ID was found
+	private void handleSuccessfulImageUpload(Response<ResponseBody> response) {
+		try {
+			String apiResponse = response.body().string();
+			Log.d(TAG, "API Response: " + apiResponse);
+
+			Gson gson = new Gson();
+			Type type = new TypeToken<Map<String, String>>() {}.getType();
+			Map<String, String> responseMap = gson.fromJson(apiResponse, type);
+
+			String predictedDish = responseMap.get("predictedDish");
+			String imageLocation = responseMap.get("imageUrl");
+			feedback.setMl_result(predictedDish);
+			feedback.setImageLocation(imageLocation);
+
+			resultTextView.setText(predictedDish);
+			viewDishBtn.setClickable(true);
+			viewDishBtn.setOnClickListener(v -> viewDishDetail(predictedDish));
+		} catch (IOException | JsonSyntaxException e) {
+			Log.e(TAG, "Error parsing response: " + e.getMessage(), e);
+			Toast.makeText(this, "Failed to parse response", Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	private void viewDishDetail(String dishDetailName) {
+		int dishID = getDishIDByName(dishDetailName);
+		if (dishID != -1) {
 			Intent intent = new Intent(ImageResultActivity.this, DishDetailsActivity.class);
 			intent.putExtra("dishID", dishID);
-			intent.putExtra("dishImageUrl", getDishImageUrl(dishID)); // Pass image URL
+			intent.putExtra("dishImageUrl", getDishImageUrl(dishID));
 			startActivity(intent);
 		} else {
 			Toast.makeText(this, "Dish not found", Toast.LENGTH_SHORT).show();
 		}
 	}
 
-	// Helper method to get the image URL of the dish by its ID
+	private int getDishIDByName(String dishDetailName) {
+		for (Dish dish : dishList) {
+			if (dish.getDishDetailName().equalsIgnoreCase(dishDetailName)) {
+				return dish.getId();
+			}
+		}
+		return -1;
+	}
+
 	private String getDishImageUrl(int dishID) {
 		for (Dish dish : dishList) {
 			if (dish.getId() == dishID) {
@@ -228,45 +252,56 @@ public class ImageResultActivity extends AppCompatActivity {
 		return null;
 	}
 
-	private void submitFeedback() {
-			String remarks = remarksEditText.getText().toString();
-
-			if (!selectedDishName.isEmpty()) {
-				feedback.setUserDish(selectedDishName);
-				feedback.setRemarks(remarks);
-
-				Gson gson = new GsonBuilder().setPrettyPrinting().create();
-				String feedbackJson = gson.toJson(feedback);
-				Log.d("ImageResultActivity", "Feedback JSON: " + feedbackJson);
-
-				ApiService apiService = RetrofitClient.getApiService();
-				Call<ResponseBody> call = apiService.submitFeedback(feedback);
-				call.enqueue(new Callback<ResponseBody>() {
-					@Override
-					public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
-						if (response.isSuccessful()) {
-							submitSuccessDialog();
-						} else {
-							Log.e("ImageResultActivity", "Feedback submission failed: " + response.message());
-							Toast.makeText(ImageResultActivity.this, "Feedback submission failed", Toast.LENGTH_SHORT).show();
-						}
-					}
-
-					@Override
-					public void onFailure(Call<ResponseBody> call, Throwable t) {
-						Log.e("ImageResultActivity", "Feedback submission error: " + t.getMessage());
-						Toast.makeText(ImageResultActivity.this, "Failed to submit submitFeedback", Toast.LENGTH_SHORT).show();
-					}
-				});
-			} else {
-				Toast.makeText(this, "Please enter a dish name", Toast.LENGTH_SHORT).show();
-			}
+	private void setupSubmitButton() {
+		Button submitBtn = findViewById(R.id.submitBtn);
+		submitBtn.setOnClickListener(v -> submitFeedback());
 	}
+
+	private void submitFeedback() {
+		String remarks = remarksEditText.getText().toString();
+
+		if (selectedDishName != null && !selectedDishName.isEmpty()) {
+			feedback.setUserDish(selectedDishName);
+			feedback.setRemarks(remarks);
+
+			Gson gson = new GsonBuilder().setPrettyPrinting().create();
+			String feedbackJson = gson.toJson(feedback);
+			Log.d(TAG, "Feedback JSON: " + feedbackJson);
+
+			ApiService apiService = RetrofitClient.getApiService(jwtToken);
+			Log.d(TAG, "API Request: Submitting feedback");
+			Call<ResponseBody> call = apiService.submitFeedback(feedback);
+
+			call.enqueue(new FeedbackCallback());
+		} else {
+			Toast.makeText(this, "Please enter a dish name", Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	private class FeedbackCallback implements Callback<ResponseBody> {
+		@Override
+		public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+			if (response.isSuccessful()) {
+				Log.d(TAG, "Feedback submitted successfully");
+				submitSuccessDialog();
+			} else {
+				Log.e(TAG, "Feedback submission failed: " + response.message());
+				Toast.makeText(ImageResultActivity.this, "Feedback submission failed", Toast.LENGTH_SHORT).show();
+			}
+		}
+
+		@Override
+		public void onFailure(Call<ResponseBody> call, Throwable t) {
+			Log.e(TAG, "Feedback submission error: " + t.getMessage(), t);
+			Toast.makeText(ImageResultActivity.this, "Failed to submit feedback", Toast.LENGTH_SHORT).show();
+		}
+	}
+
 	private void submitSuccessDialog() {
 		LayoutInflater inflater = getLayoutInflater();
 		View dialogView = inflater.inflate(R.layout.dialog_custom, null);
 		TextView dialogMessage = dialogView.findViewById(R.id.dialogMessage);
-		dialogMessage.setText("Thank you for your submitFeedback!");
+		dialogMessage.setText("Thank you for your feedback!");
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setView(dialogView);

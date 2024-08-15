@@ -12,28 +12,6 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Name -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="5dp">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Name"
-                android:textSize="18sp"
-                android:textStyle="bold"/>
-            <EditText
-                android:id="@+id/nameText"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="3"
-                android:hint="Enter name"
-                android:textSize="15sp"/>
-        </LinearLayout>
-
         <!-- Username -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -77,6 +55,28 @@
                 android:hint="Enter password"
                 android:textSize="15sp"
                 android:inputType="textPassword"/>
+        </LinearLayout>
+
+        <!-- Name -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="5dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Name"
+                android:textSize="18sp"
+                android:textStyle="bold"/>
+            <EditText
+                android:id="@+id/nameText"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="3"
+                android:hint="Enter name"
+                android:textSize="15sp"/>
         </LinearLayout>
 
         <!-- Email -->
@@ -267,34 +267,39 @@
 
         <!-- Allergies -->
         <LinearLayout
+            android:id="@+id/allergySection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:layout_marginTop="5dp">
             <TextView
+                android:id="@+id/setAllergiesBtn"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.7"
-                android:text="Allergy"
+                android:layout_weight="1"
+                android:text="Set Allergies"
+                android:clickable="true"
                 android:textSize="18sp"
                 android:textStyle="bold"/>
             <androidx.gridlayout.widget.GridLayout
                 android:id="@+id/allergyOptionsGrid"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="4.3"
-                app:columnCount="4"
+                android:layout_weight="3"
+                app:columnCount="3"
                 app:orientation="horizontal">
             </androidx.gridlayout.widget.GridLayout>
         </LinearLayout>
 
         <!-- Dish Preferences -->
         <LinearLayout
+            android:id="@+id/dishPreferencesSection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginTop="5dp">
+            android:layout_marginTop="5dp"
+            android:enabled="false">
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

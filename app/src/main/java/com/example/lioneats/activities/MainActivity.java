@@ -1,5 +1,6 @@
 package com.example.lioneats.activities;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -8,16 +9,16 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -26,13 +27,12 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
+
 import com.example.lioneats.R;
 import com.example.lioneats.adapters.ImageAdapter;
-import com.example.lioneats.adapters.MultiSelectAdapter;
 import com.example.lioneats.adapters.RestaurantAdapter;
 import com.example.lioneats.api.ApiService;
-import com.example.lioneats.dtos.CompositeDTO;
-import com.example.lioneats.dtos.LocationDTO;
+import com.example.lioneats.api.RetrofitClient;
 import com.example.lioneats.dtos.MRTDTO;
 import com.example.lioneats.dtos.SearchRequestDTO;
 import com.example.lioneats.dtos.ShopDTO;
@@ -41,57 +41,55 @@ import com.example.lioneats.fragments.HeaderFragment;
 import com.example.lioneats.models.Allergy;
 import com.example.lioneats.models.Dish;
 import com.example.lioneats.models.UserDTO;
-import com.example.lioneats.utils.RetrofitClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
-import com.google.android.gms.tasks.OnFailureListener;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import retrofit2.Call;
-import android.Manifest;
-import androidx.annotation.NonNull;
-import com.google.android.gms.location.LocationRequest;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity implements ImageAdapter.OnItemClickListener {
 
+	private static final int REQUEST_CODE = 100;
+	private static final String TAG = "MainActivity";
+
 	private Handler handler;
 	private Runnable runnable;
 	private int currentItem = 0;
-
-	private static final int REQUEST_CODE = 100;
-	private static final String TAG = "MainActivity";
 	private ViewPager2 viewPager;
 	private List<Dish> dishList = new ArrayList<>();
 	private List<Allergy> allergyList = new ArrayList<>();
 	private List<MRTDTO> mrtList = new ArrayList<>();
-	private List<ShopDTO> restaurantList = new ArrayList<>();
-	private RestaurantAdapter restaurantAdapter;
-	private FusedLocationProviderClient fusedLocationClient;
-	private LocationCallback locationCallback;
-	private SharedPreferences userSessionPreferences, userPreferences, dishListPreferences, allergyListPreferences, mrtListPreferences;
-	private ProgressBar progressBar;
-
-	List<String> dishNames = new ArrayList<>();
-	List<String> allergyNames = new ArrayList<>();
-	List<String> mrtNames = new ArrayList<>();
+	private final List<String> dishNames = new ArrayList<>();
+	private final List<String> allergyNames = new ArrayList<>();
+	private final List<String> mrtNames = new ArrayList<>();
 	private List<String> selectedDish;
 	private List<String> selectedLocation;
 	private List<String> selectedAllergies;
 	private String selectedBudget;
 	private double selectedRating;
-	private UserLocationDTO currentLocation;
+	private String username;
 	private UserDTO user;
-
+	private FusedLocationProviderClient fusedLocationClient;
+	private LocationCallback locationCallback;
+	private UserLocationDTO currentLocation;
+	private String jwtToken;
+	private SharedPreferences userSessionPreferences, userPreferences, dishListPreferences, allergyListPreferences, mrtListPreferences;
+	private ProgressBar progressBar;
+	private RestaurantAdapter restaurantAdapter;
+	private final List<ShopDTO> restaurantList = new ArrayList<>();
 	private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
 	@Override
@@ -99,20 +97,15 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		userSessionPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
-		userPreferences = getSharedPreferences("user", MODE_PRIVATE);
-		dishListPreferences = getSharedPreferences("dish_list", MODE_PRIVATE);
-		allergyListPreferences = getSharedPreferences("allergy_list", MODE_PRIVATE);
-		mrtListPreferences = getSharedPreferences("mrt_list", MODE_PRIVATE);
+		initPreferences();
+		username = userSessionPreferences.getString("username", null);
+		Log.d(TAG, "Username from preferences: " + username);
 
 		setupUI();
 		setupLocationServices();
 		loadListsFromPreferencesOrFetch();
 
-		String username = userSessionPreferences.getString("username", null);
-		Log.d(TAG, "Username from preferences: " + username);
 		LinearLayout userHomeLayout = findViewById(R.id.userHomeLayout);
-
 		if (username != null) {
 			userHomeLayout.setVisibility(View.VISIBLE);
 			setupSpinners();
@@ -121,10 +114,19 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 			if (userJson != null) {
 				user = new Gson().fromJson(userJson, UserDTO.class);
 			}
-			//searchAndDisplayShops();
+			jwtToken = userSessionPreferences.getString("jwt", "");
+			filterAndDisplayShops();
 		} else {
-			getLastLocation();
+			handleShopFetchingLogic();
 		}
+	}
+
+	private void initPreferences() {
+		userSessionPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
+		userPreferences = getSharedPreferences("user", MODE_PRIVATE);
+		dishListPreferences = getSharedPreferences("dish_list", MODE_PRIVATE);
+		allergyListPreferences = getSharedPreferences("allergy_list", MODE_PRIVATE);
+		mrtListPreferences = getSharedPreferences("mrt_list", MODE_PRIVATE);
 	}
 
 	private void loadListsFromPreferencesOrFetch() {
@@ -136,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		for (Dish dish : dishList) {
 			dishNames.add(dish.getDishDetailName());
 		}
-		allergyNames.add(""); // Add an empty item to represent no selection
+		allergyNames.add("");
 		for (Allergy allergy : allergyList) {
 			allergyNames.add(allergy.getName());
 		}
@@ -178,9 +180,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	}
 
 	private void fetchAndUpdateDishes() {
-		ApiService apiService = RetrofitClient.getApiService();
-
-		Log.d(TAG, "API Request: Fetching Dishes");
+		ApiService apiService = RetrofitClient.getApiServiceWithoutToken();
 
 		Call<List<Dish>> call = apiService.getAllDishes();
 
@@ -188,6 +188,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 			@Override
 			public void onResponse(Call<List<Dish>> call, Response<List<Dish>> response) {
 				if (response.isSuccessful() && response.body() != null) {
+					Log.d(TAG, "Dishes Response Body: " + gson.toJson(response.body()));
 					dishList = response.body();
 					SharedPreferences.Editor dishEditor = dishListPreferences.edit();
 					dishEditor.putString("dishes", gson.toJson(dishList));
@@ -207,9 +208,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	}
 
 	private void fetchAndUpdateAllergies() {
-		ApiService apiService = RetrofitClient.getApiService();
-
-		Log.d(TAG, "API Request: Fetching Allergies");
+		ApiService apiService = RetrofitClient.getApiServiceWithoutToken();
 
 		Call<List<Allergy>> call = apiService.getAllergies();
 
@@ -217,6 +216,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 			@Override
 			public void onResponse(Call<List<Allergy>> call, Response<List<Allergy>> response) {
 				if (response.isSuccessful() && response.body() != null) {
+					Log.d(TAG, "Allergies Response Body: " + gson.toJson(response.body()));
 					allergyList = response.body();
 					SharedPreferences.Editor allergyEditor = allergyListPreferences.edit();
 					allergyEditor.putString("allergies", gson.toJson(allergyList));
@@ -235,9 +235,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	}
 
 	private void fetchAndUpdateMRTs() {
-		ApiService apiService = RetrofitClient.getApiService();
-
-		Log.d(TAG, "API Request: Fetching MRTs");
+		ApiService apiService = RetrofitClient.getApiServiceWithoutToken();
 
 		Call<List<MRTDTO>> call = apiService.getMRTList();
 
@@ -245,6 +243,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 			@Override
 			public void onResponse(Call<List<MRTDTO>> call, Response<List<MRTDTO>> response) {
 				if (response.isSuccessful() && response.body() != null) {
+					Log.d(TAG, "MRTs Response Body: " + gson.toJson(response.body()));
 					mrtList = response.body();
 					SharedPreferences.Editor mrtEditor = mrtListPreferences.edit();
 					mrtEditor.putString("MRTs", gson.toJson(mrtList));
@@ -274,7 +273,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 
 		RecyclerView recyclerView = findViewById(R.id.recyclerView);
 		recyclerView.setLayoutManager(new LinearLayoutManager(this));
-		restaurantAdapter = new RestaurantAdapter(restaurantList);
+		restaurantAdapter = new RestaurantAdapter(restaurantList, username);
 		recyclerView.setAdapter(restaurantAdapter);
 	}
 
@@ -283,15 +282,14 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		locationCallback = new LocationCallback() {
 			@Override
 			public void onLocationResult(LocationResult locationResult) {
-				if (locationResult == null) {
-					Log.d(TAG, "Location result is null");
-					fetchShopsByDefaultLocation();
-					return;
-				}
-				Location location = locationResult.getLastLocation();
-				if (location != null) {
-					currentLocation = new UserLocationDTO(location.getLatitude(), location.getLongitude());
-					fetchShopsByLocation(currentLocation);
+				if (locationResult != null) {
+					Location location = locationResult.getLastLocation();
+					if (location != null) {
+						currentLocation = new UserLocationDTO(location.getLatitude(), location.getLongitude());
+						fetchShopsByLocation(currentLocation);
+					} else {
+						fetchShopsByDefaultLocation();
+					}
 				} else {
 					fetchShopsByDefaultLocation();
 				}
@@ -299,21 +297,49 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		};
 	}
 
-	private void getLastLocation() {
-		if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-			fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
-				if (location != null) {
-					currentLocation = new UserLocationDTO(location.getLatitude(), location.getLongitude());
+	private void handleShopFetchingLogic() {
+		if (username == null) {
+			if (isLocationPermissionGranted()) {
+				if (isCurrentLocationAvailable()) {
 					fetchShopsByLocation(currentLocation);
 				} else {
-					requestNewLocationData();
+					fetchShopsByDefaultLocation();
 				}
-			}).addOnFailureListener(e -> {
-				e.printStackTrace();
-				Log.e(TAG, "Error trying to get location", e);
-				Toast.makeText(MainActivity.this, "Error trying to get location", Toast.LENGTH_SHORT).show();
+			} else {
 				fetchShopsByDefaultLocation();
-			});
+			}
+		} else {
+			filterAndDisplayShops();
+		}
+	}
+
+	private boolean isLocationPermissionGranted() {
+		return ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+	}
+
+	private boolean isCurrentLocationAvailable() {
+		if (currentLocation == null) {
+			getLastLocation();
+		}
+		return currentLocation != null;
+	}
+
+	private void getLastLocation() {
+		if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+			fusedLocationClient.getLastLocation()
+					.addOnSuccessListener(location -> {
+						if (location != null) {
+							currentLocation = new UserLocationDTO(location.getLatitude(), location.getLongitude());
+							handleShopFetchingLogic(); // Ensure this is called after location is set
+						} else {
+							requestNewLocationData();
+						}
+					})
+					.addOnFailureListener(e -> {
+						Log.e(TAG, "Error trying to get location", e);
+						Toast.makeText(MainActivity.this, "Error trying to get location", Toast.LENGTH_SHORT).show();
+						fetchShopsByDefaultLocation(); // Handle fallback here if necessary
+					});
 		} else {
 			askPermission();
 		}
@@ -324,17 +350,18 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 				.setMinUpdateIntervalMillis(5000)
 				.build();
 
-		if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-			return;
+		if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+			fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
+		} else {
+			askPermission();
 		}
-		fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
 	}
 
 	private void askPermission() {
-		if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+		if (ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.ACCESS_FINE_LOCATION)) {
 			Toast.makeText(this, "Location permission is needed to show nearby restaurants.", Toast.LENGTH_LONG).show();
 		}
-		ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
+		ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
 	}
 
 	@Override
@@ -351,10 +378,11 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	}
 
 	private void fetchShopsByLocation(UserLocationDTO location) {
-		Log.d(TAG, "API Request: Fetching Shops by Location: " + gson.toJson(location));
+		ApiService apiService = RetrofitClient.getApiServiceWithoutToken();
+		String requestBody = gson.toJson(location);
+		Log.d(TAG, "Request Body: " + requestBody);
 
-		ApiService apiService = RetrofitClient.getApiService();
-		Call<List<ShopDTO>> call = apiService.getShopsByLocaiton(location);
+		Call<List<ShopDTO>> call = apiService.getShopsByLocation(location);
 
 		call.enqueue(new Callback<List<ShopDTO>>() {
 			@Override
@@ -363,21 +391,23 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 					List<ShopDTO> shops = response.body();
 					updateRestaurantList(shops);
 				} else {
-					handleFetchError("Failed to fetch restaurants: " + response.message());
+					String errorMsg = response.message() != null ? response.message() : "Unknown error";
+					Log.e(TAG, "Failed to fetch restaurants: " + errorMsg + " (Code: " + response.code() + ")");
+					handleFetchError("Failed to fetch restaurants: " + errorMsg);
 				}
 			}
 
 			@Override
 			public void onFailure(Call<List<ShopDTO>> call, Throwable t) {
-				handleFetchError("Network error while fetching restaurants", t);
+				Log.e(TAG, "Network Error: ", t);
+				handleFetchError("Network Error: " + t.getMessage());
 			}
 		});
 	}
 
 	private void fetchShopsByDefaultLocation() {
-		Log.d(TAG, "API Request: Fetching Shops by Default Location");
+		ApiService apiService = RetrofitClient.getApiServiceWithoutToken();
 
-		ApiService apiService = RetrofitClient.getApiService();
 		Call<List<ShopDTO>> call = apiService.getShopsDefault();
 
 		call.enqueue(new Callback<List<ShopDTO>>() {
@@ -397,6 +427,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 			}
 		});
 	}
+
 
 	private void updateRestaurantList(List<ShopDTO> shops) {
 		restaurantList.clear();
@@ -430,7 +461,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+		if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 			getLastLocation();
 		} else {
 			fetchShopsByDefaultLocation();
@@ -478,33 +509,28 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		setupDishSpinner();
 		setupAllergySpinner();
 		setupLocationSpinner();
-		Button refreshBtn = findViewById(R.id.refreshBtn);
-		refreshBtn.setOnClickListener(v -> filterAndDisplayShops());
+		findViewById(R.id.refreshBtn).setOnClickListener(v -> filterAndDisplayShops());
 	}
 
 	private void setupBudgetSpinner() {
 		Spinner budgetSpinner = findViewById(R.id.spinnerBudget);
 		List<String> budgetOptions = new ArrayList<>();
-		budgetOptions.add(""); // Add an empty item to represent no selection
+		budgetOptions.add("");
 		budgetOptions.addAll(Arrays.asList(getResources().getStringArray(R.array.spinnerBudget_items)));
 		ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
 				android.R.layout.simple_spinner_item, budgetOptions);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		budgetSpinner.setAdapter(adapter);
-		budgetSpinner.setSelection(0, true); // Start with the empty item selected
+
 		budgetSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 			@Override
 			public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-				if (position != 0) {
-					selectedBudget = parent.getItemAtPosition(position).toString();
-				} else {
-					selectedBudget = null; // Ensure budget is null if no selection is made
-				}
+				selectedBudget = position != 0 ? parent.getItemAtPosition(position).toString() : "";
 			}
 
 			@Override
 			public void onNothingSelected(AdapterView<?> parent) {
-				selectedBudget = null;
+				selectedBudget = "";
 			}
 		});
 	}
@@ -512,21 +538,17 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	private void setupRatingSpinner() {
 		Spinner ratingSpinner = findViewById(R.id.spinnerRating);
 		List<String> ratingOptions = new ArrayList<>();
-		ratingOptions.add(""); // Add an empty item to represent no selection
+		ratingOptions.add("");
 		ratingOptions.addAll(Arrays.asList(getResources().getStringArray(R.array.spinnerRating_items)));
 		ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
 				android.R.layout.simple_spinner_item, ratingOptions);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		ratingSpinner.setAdapter(adapter);
-		ratingSpinner.setSelection(0, true); // Start with the empty item selected
+
 		ratingSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 			@Override
 			public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-				if (position != 0) {
-					selectedRating = Double.parseDouble(parent.getItemAtPosition(position).toString());
-				} else {
-					selectedRating = 0.0; // Reset rating to 0 if no rating is selected
-				}
+				selectedRating = position != 0 ? Double.parseDouble(parent.getItemAtPosition(position).toString()) : 0.0;
 			}
 
 			@Override
@@ -536,126 +558,63 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		});
 	}
 
+	private void showMultiSelectionDialog(String title, List<String> items, List<String> selectedItems, Spinner spinner) {
+		boolean[] checkedItems = new boolean[items.size()];
+		String[] itemsArray = items.toArray(new String[0]);
+
+		DialogInterface.OnMultiChoiceClickListener listener = (dialog, which, isChecked) -> {
+			if (isChecked) {
+				selectedItems.add(items.get(which));
+			} else {
+				selectedItems.remove(items.get(which));
+			}
+		};
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(title);
+		builder.setMultiChoiceItems(itemsArray, checkedItems, listener);
+		builder.setPositiveButton("OK", (dialog, which) -> {
+			String text = selectedItems.isEmpty() ? title : selectedItems.toString();
+			ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, Collections.singletonList(text));
+			spinner.setAdapter(adapter);
+		});
+		builder.setNegativeButton("Cancel", null);
+		builder.show();
+	}
+
 	private void setupDishSpinner() {
 		Spinner dishSpinner = findViewById(R.id.spinnerDish);
 		selectedDish = new ArrayList<>();
-		// This is the correct way to handle item selection in a Spinner
-		dishSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-			@Override
-			public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-				String selectedDishName = parent.getItemAtPosition(position).toString();
-				if (position != 0) { // Avoid the first (empty) selection
-					selectedDish.add(selectedDishName);
-				} else {
-					selectedDish.clear();
-				}
+		dishSpinner.setOnTouchListener((v, event) -> {
+			if (event.getAction() == MotionEvent.ACTION_UP) {
+				v.performClick();
+				showMultiSelectionDialog("Select Dishes", dishNames, selectedDish, dishSpinner);
 			}
-
-			@Override
-			public void onNothingSelected(AdapterView<?> parent) {
-				selectedDish.clear();
-			}
+			return true;
 		});
 	}
 
 	private void setupAllergySpinner() {
 		Spinner allergySpinner = findViewById(R.id.spinnerAllergy);
 		selectedAllergies = new ArrayList<>();
-		// Set the correct listener for item selection in a Spinner
-		allergySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-			@Override
-			public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-				String selectedAllergy = parent.getItemAtPosition(position).toString();
-				if (position != 0) { // Avoid the first (empty) selection
-					selectedAllergies.add(selectedAllergy);
-				} else {
-					selectedAllergies.clear();
-				}
+		allergySpinner.setOnTouchListener((v, event) -> {
+			if (event.getAction() == MotionEvent.ACTION_UP) {
+				v.performClick();
+				showMultiSelectionDialog("Select Allergies", allergyNames, selectedAllergies, allergySpinner);
 			}
-
-			@Override
-			public void onNothingSelected(AdapterView<?> parent) {
-				selectedAllergies.clear();
-			}
+			return true;
 		});
-	}
-	
-	private void showMultiSelectDialog(String title, List<String> items, List<String> selectedItems) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle(title);
-
-		View view = getLayoutInflater().inflate(R.layout.multi_select_dialog, null);
-		ListView listView = view.findViewById(R.id.listViewMultiSelect);
-		MultiSelectAdapter adapter = new MultiSelectAdapter(this, items, selectedItems);
-		listView.setAdapter(adapter);
-
-		builder.setView(view);
-		builder.setPositiveButton("OK", (dialog, which) -> {
-			// Handle "OK" button
-		});
-		builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
-
-		builder.create().show();
 	}
 
 	private void setupLocationSpinner() {
-		selectedLocation = new ArrayList<>();
 		Spinner locationSpinner = findViewById(R.id.spinnerLocation);
-		List<String> mrtNames = new ArrayList<>();
-		mrtNames.add(""); // Add an empty item to represent no selection
-		for (MRTDTO mrt : mrtList) {
-			mrtNames.add(mrt.getName());
-		}
-		ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-				android.R.layout.simple_spinner_item, mrtNames);
-		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		locationSpinner.setAdapter(adapter);
-		locationSpinner.setSelection(0, true); // Start with the empty item selected
-		locationSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-			@Override
-			public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-				if (position != 0) {
-					selectedLocation.add(parent.getItemAtPosition(position).toString());
-				} else {
-					selectedLocation.clear(); // Clear selection if no location is selected
-				}
+		selectedLocation = new ArrayList<>();
+		locationSpinner.setOnTouchListener((v, event) -> {
+			if (event.getAction() == MotionEvent.ACTION_UP) {
+				v.performClick();
+				showMultiSelectionDialog("Select Locations", mrtNames, selectedLocation, locationSpinner);
 			}
-
-			@Override
-			public void onNothingSelected(AdapterView<?> parent) {
-				selectedLocation.clear();
-			}
-		});
-	}
-
-	private void searchAndDisplayShops() {
-		String userJson = userPreferences.getString("user", null);
-		if (userJson != null) {
-			user = new Gson().fromJson(userJson, UserDTO.class);
-		}
-		if (currentLocation == null) {
-			currentLocation = new UserLocationDTO(1.290, 103.84);
-		}
-		CompositeDTO compositeDTO = new CompositeDTO(user, currentLocation);
-		Log.d(TAG, "API Request: Searching Shops: " + gson.toJson(compositeDTO));
-
-		ApiService apiService = RetrofitClient.getApiService();
-		Call<List<ShopDTO>> call = apiService.searchShops(compositeDTO);
-		call.enqueue(new Callback<List<ShopDTO>>() {
-			@Override
-			public void onResponse(Call<List<ShopDTO>> call, Response<List<ShopDTO>> response) {
-				if (response.isSuccessful() && response.body() != null) {
-					List<ShopDTO> searchedShops = response.body();
-					updateRestaurantList(searchedShops);
-				} else {
-					handleFetchError("Failed to search restaurants: " + response.message());
-				}
-			}
-
-			@Override
-			public void onFailure(Call<List<ShopDTO>> call, Throwable t) {
-				handleFetchError("Network error while searching restaurants", t);
-			}
+			return true;
 		});
 	}
 
@@ -663,7 +622,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		SearchRequestDTO searchRequest = setupSearchRequest();
 		Log.d(TAG, "API Request: Filtering Shops: " + gson.toJson(searchRequest));
 
-		ApiService apiService = RetrofitClient.getApiService();
+		ApiService apiService = RetrofitClient.getApiService(jwtToken);
 		Call<List<ShopDTO>> call = apiService.filterShops(searchRequest);
 		call.enqueue(new Callback<List<ShopDTO>>() {
 			@Override
@@ -672,7 +631,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 					List<ShopDTO> filteredShops = response.body();
 					updateRestaurantList(filteredShops);
 				} else {
-					handleFetchError("Failed to filter restaurants: " + response.message());
+					handleFetchError("No restaurants available for with the selected filters: " + response.message());
 				}
 			}
 
@@ -686,32 +645,82 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	private SearchRequestDTO setupSearchRequest() {
 		SearchRequestDTO searchRequest = new SearchRequestDTO();
 
-		if (selectedDish != null) {
-			searchRequest.setDishes(selectedDish);
+		if (selectedDish == null || selectedDish.isEmpty()) {
+			if (user.getDishPreferences() != null) {
+				searchRequest.setDishes(user.getDishPreferences());
+			} else {
+				searchRequest.setDishes(new ArrayList<>());
+			}
 		} else {
-			//searchRequest.setDishes(List<String>);
+			searchRequest.setDishes(selectedDish);
 		}
 
-		if (selectedBudget != null) {
+		if (selectedAllergies == null || selectedAllergies.isEmpty()) {
+			if (user.getAllergies() != null) {
+				searchRequest.setAllergies(user.getAllergies());
+			} else {
+				searchRequest.setAllergies(new ArrayList<>());
+			}
+		} else {
+			searchRequest.setAllergies(selectedAllergies);
+		}
+
+		if (selectedLocation == null || selectedLocation.isEmpty()) {
+			if (isLocationPermissionGranted() && isCurrentLocationAvailable()) {
+				List<String> currentLocationMRTs = getMRTbyCurrentLocation();
+				if (currentLocationMRTs != null && !currentLocationMRTs.isEmpty()) {
+					searchRequest.setLocation(currentLocationMRTs);
+				} else {
+					searchRequest.setLocation(new ArrayList<>());
+				}
+			} else {
+				searchRequest.setLocation(new ArrayList<>());
+			}
+		} else {
+			searchRequest.setLocation(selectedLocation);
+		}
+
+		if (selectedBudget != null && !selectedBudget.isEmpty()) {
 			searchRequest.setBudget(selectedBudget);
+		} else if (user.getPreferredBudget() != null) {
+			searchRequest.setBudget(user.getPreferredBudget());
 		} else {
 			searchRequest.setBudget("");
 		}
 
-		if (selectedAllergies != null) {
-			searchRequest.setAllergies(selectedAllergies);
-		} else {
-			//searchRequest.setAllergies(user.getAllergies());
-		}
-
-		if (selectedLocation != null) {
-			searchRequest.setLocation(selectedLocation);
-		} else {
-
-		}
-
-		searchRequest.setMinRating(selectedRating);
+		searchRequest.setMinRating(selectedRating > 0 ? selectedRating : 0.0);
 
 		return searchRequest;
+	}
+
+
+	private List<String> getMRTbyCurrentLocation() {
+		List<String> locationMRTs = new ArrayList<>();
+		ApiService apiService = RetrofitClient.getApiServiceWithoutToken();
+
+		String requestBody = gson.toJson(currentLocation);
+		Log.d(TAG, "Request Body: " + requestBody);
+
+		Call<List<MRTDTO>> call = apiService.getNearestMRTs(currentLocation);
+		call.enqueue(new Callback<List<MRTDTO>>() {
+			@Override
+			public void onResponse(Call<List<MRTDTO>> call, Response<List<MRTDTO>> response) {
+				if (response.isSuccessful() && response.body() != null) {
+					List<MRTDTO> nearestMRTs = response.body();
+					Log.d(TAG, "Get MRT by location Response Body: " + gson.toJson(response.body()));
+					for (MRTDTO mrt : nearestMRTs) {
+						locationMRTs.add(mrt.getName());
+					}
+				} else {
+					handleFetchError("No MRT for current location: " + response.message());
+				}
+			}
+
+			@Override
+			public void onFailure(Call<List<MRTDTO>> call, Throwable t) {
+				handleFetchError("Network error while getting MRT by current location", t);
+			}
+		});
+		return locationMRTs;
 	}
 }

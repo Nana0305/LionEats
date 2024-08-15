@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ML_feedback {
-	private String imageBlobUrl;
+	private String imageLocation;
 	private String ml_result;
 	private String userDish;
 	private String remarks;

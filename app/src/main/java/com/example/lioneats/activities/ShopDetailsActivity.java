@@ -1,36 +1,25 @@
 package com.example.lioneats.activities;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentTransaction;
-
 import com.bumptech.glide.Glide;
 import com.example.lioneats.R;
 import com.example.lioneats.dtos.ShopDTO;
 import com.example.lioneats.fragments.HeaderFragment;
 
-import org.w3c.dom.Text;
-
 public class ShopDetailsActivity extends AppCompatActivity {
 
-	private TextView shopName;
-	private TextView shopAddress;
-	private TextView shopPhone;
-	private TextView shopRating;
-	private TextView shopUrl;
-	private TextView shopPrice;
-	private TextView shopReview1;
-	private TextView openingHoursText;
-	private ImageView shopDishImage1;
-	private ImageView shopDishImage2;
-	private ImageView shopDishImage3;
+	private static final String TAG = "ShopDetailsActivity";
+	private TextView shopName, shopAddress, shopPhone, shopRating, shopUrl, shopPrice, shopReview1, openingHoursText;
+	private ImageView shopDishImage1, shopDishImage2, shopDishImage3;
 	private TableLayout openingHoursTable;
 
 	@Override
@@ -38,7 +27,6 @@ public class ShopDetailsActivity extends AppCompatActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_shop_details);
 
-		// Initialize UI elements
 		shopName = findViewById(R.id.shopName);
 		shopAddress = findViewById(R.id.shopAddress);
 		shopPhone = findViewById(R.id.shopPhone);
@@ -56,22 +44,31 @@ public class ShopDetailsActivity extends AppCompatActivity {
 		transaction.replace(R.id.headerFragmentContainer, new HeaderFragment());
 		transaction.commit();
 
-		ShopDTO shop = (ShopDTO) getIntent().getSerializableExtra("shop");
+		Intent intent = getIntent();
+		ShopDTO shop = (ShopDTO) intent.getSerializableExtra("shop");
 		if (shop != null) {
+			Log.d(TAG, "Shop received: " + shop.getName());
 			updateUI(shop);
 		} else {
-			Log.e("ShopDetailsActivity", "No shop data found in intent extras");
+			Log.e(TAG, "No shop data found in intent extras");
 		}
 	}
 
 	private void updateUI(ShopDTO shop) {
-		// Update text fields
 		shopName.setText(shop.getName() != null ? shop.getName() : "Name Not Available");
 		shopAddress.setText(shop.getFormattedAddress() != null ? shop.getFormattedAddress() : "Address Not Available");
-		shopPhone.setText(shop.getFormattedPhoneNumber() != null ? shop.getFormattedPhoneNumber() : "Phone No Available");
+		shopPhone.setText(shop.getFormattedPhoneNumber() != null ? shop.getFormattedPhoneNumber() : "Phone Not Available");
 		shopRating.setText(shop.getRating() != 0 ? String.valueOf(shop.getRating()) : "Ratings Not Available");
 		shopUrl.setText(shop.getWebsiteUrl() != null ? shop.getWebsiteUrl() : "Website Not Available");
 		shopPrice.setText(getPriceLevel(shop.getPriceLevel()));
+
+		shopUrl.setOnClickListener(v -> {
+			String url = shop.getWebsiteUrl();
+			if (url != null && !url.isEmpty()) {
+				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+				startActivity(intent);
+			}
+		});
 
 		openingHoursTable.removeAllViews();
 		if (shop.getOpeningHours() != null && shop.getOpeningHours().getWeekdayText() != null) {
@@ -107,7 +104,6 @@ public class ShopDetailsActivity extends AppCompatActivity {
 			shopReview1.setText("Reviews Not Available");
 		}
 
-		// Update images using Glide
 		if (shop.getPhotos() != null && shop.getPhotos().size() >= 3) {
 			loadImage(shop.getPhotos().get(0).getPhotoReference(), shopDishImage1);
 			loadImage(shop.getPhotos().get(1).getPhotoReference(), shopDishImage2);
@@ -128,7 +124,6 @@ public class ShopDetailsActivity extends AppCompatActivity {
 	}
 
 	private String getPriceLevel(int priceLevel) {
-		// Map price level to a string representation (e.g., $, $$, $$$)
 		switch (priceLevel) {
 			case 1:
 				return "$";

@@ -10,17 +10,17 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.bumptech.glide.Glide;
 import com.example.lioneats.R;
 import com.example.lioneats.api.ApiService;
 import com.example.lioneats.fragments.HeaderFragment;
 import com.example.lioneats.models.Allergy;
 import com.example.lioneats.models.Dish;
 import com.example.lioneats.models.DishDetail;
-import com.example.lioneats.utils.RetrofitClient;
+import com.example.lioneats.api.RetrofitClient;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import com.squareup.picasso.Picasso;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -31,6 +31,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class DishDetailsActivity extends AppCompatActivity {
+	private static final String TAG = "DishDetailsActivity";
+
 	private TextView dishNameText, dishAllergiesText, dishIngredientsText, dishHistoryText, dishDescriptionText;
 	private ImageView dishImage;
 	private List<Allergy> allergyList = new ArrayList<>();
@@ -69,8 +71,7 @@ public class DishDetailsActivity extends AppCompatActivity {
 		String allergyJson = allergyListPreferences.getString("allergies", null);
 
 		if (allergyJson != null) {
-			Type listType = new TypeToken<List<Allergy>>() {
-			}.getType();
+			Type listType = new TypeToken<List<Allergy>>() {}.getType();
 			allergyList = new Gson().fromJson(allergyJson, listType);
 		} else {
 			Toast.makeText(this, "No allergies found", Toast.LENGTH_SHORT).show();
@@ -82,24 +83,24 @@ public class DishDetailsActivity extends AppCompatActivity {
 		String dishJson = dishListPreferences.getString("dishes", null);
 
 		if (dishJson != null) {
-			Type listType = new TypeToken<List<Dish>>() {
-			}.getType();
+			Type listType = new TypeToken<List<Dish>>() {}.getType();
 			dishList = new Gson().fromJson(dishJson, listType);
 		} else {
 			Toast.makeText(this, "No dishes found", Toast.LENGTH_SHORT).show();
-			Log.e("DishDetailsActivity", "No dishes found in SharedPreferences");
+			Log.e(TAG, "No dishes found in SharedPreferences");
 		}
 	}
 
 	private void setDishImage(String dishImageUrl) {
-		Picasso.get()
+		Glide.with(this)
 				.load(dishImageUrl)
 				.placeholder(R.drawable.default_image)
+				.error(R.drawable.default_image)
 				.into(dishImage);
 	}
 
 	private void fetchDishData(int dishID) {
-		ApiService apiService = RetrofitClient.getApiService();
+		ApiService apiService = RetrofitClient.getApiServiceWithoutToken();
 		Call<DishDetail> call = apiService.getDishById(dishID);
 
 		call.enqueue(new Callback<DishDetail>() {
@@ -109,7 +110,7 @@ public class DishDetailsActivity extends AppCompatActivity {
 					Toast.makeText(DishDetailsActivity.this, "Data fetched", Toast.LENGTH_SHORT).show();
 					Gson gson = new GsonBuilder().setPrettyPrinting().create();
 					String jsonResponse = gson.toJson(response.body());
-					Log.d("DishDetailsActivity", "JSON Response: " + jsonResponse);
+					Log.d(TAG, "JSON Response: " + jsonResponse);
 
 					DishDetail dishDetail = response.body();
 					updateUI(dishDetail);
@@ -121,7 +122,7 @@ public class DishDetailsActivity extends AppCompatActivity {
 			@Override
 			public void onFailure(Call<DishDetail> call, Throwable t) {
 				Toast.makeText(DishDetailsActivity.this, "Network Error", Toast.LENGTH_SHORT).show();
-				Log.e("DishDetailsActivity", "Network Error: ", t);
+				Log.e(TAG, "Network Error: ", t);
 			}
 		});
 	}
@@ -134,23 +135,23 @@ public class DishDetailsActivity extends AppCompatActivity {
 
 		StringBuilder dishAllergies = new StringBuilder();
 
-		Log.d("DishDetail", "Dish Name: " + dishDetail.getName());
+		Log.d(TAG, "Dish Name: " + dishDetail.getName());
 		for (Dish dish : dishList) {
-			Log.d("DishList", "Dish Name: " + dish.getDishDetailName());
+			Log.d(TAG, "Dish Name: " + dish.getDishDetailName());
 			if (dish.getDishDetailName().trim().equalsIgnoreCase(dishDetail.getName().trim())) {
 				for (Allergy allergy : allergyList) {
-					Log.d("Allergy", "Checking allergy: " + allergy.getName());
+					Log.d(TAG, "Checking allergy: " + allergy.getName());
 					for (DishDetail allergyDish : allergy.getDishes()) {
 						if (allergyDish.getName().trim().equalsIgnoreCase(dishDetail.getName().trim())) {
-							Log.d("Allergy", "Found allergy: " + allergy.getName());
+							Log.d(TAG, "Found allergy: " + allergy.getName());
 							dishAllergies.append(allergy.getName()).append(" allergy    ");
-							break; // No need to check further dishes once a match is found
+							break;
 						}
 					}
 				}
 			}
 		}
 		dishAllergiesText.setText(dishAllergies.toString());
-		Log.d("DishAllergies", "Allergies: " + dishAllergies.toString());
+		Log.d(TAG, "Allergies: " + dishAllergies.toString());
 	}
 }

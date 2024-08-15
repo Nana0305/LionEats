@@ -1,33 +1,26 @@
 package com.example.lioneats.fragments;
 
 import android.Manifest;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.lioneats.R;
 
-import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
-import retrofit2.Call;
-
 import androidx.annotation.NonNull;
-import retrofit2.Callback;
-import retrofit2.Response;
-import android.content.DialogInterface;
+
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -41,38 +34,26 @@ import com.example.lioneats.activities.LoginActivity;
 import com.example.lioneats.activities.MainActivity;
 import com.example.lioneats.activities.RegisterAccountActivity;
 import com.example.lioneats.activities.UpdateUserActivity;
-import com.example.lioneats.api.ApiService;
-import com.example.lioneats.models.ML_feedback;
-import com.example.lioneats.utils.RetrofitClient;
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
-
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class HeaderFragment extends Fragment {
+
+	private static final String TAG = "HeaderFragment";
 	private static final int REQUEST_CAMERA_PERMISSION = 100;
 	private static final int REQUEST_IMAGE_CAPTURE = 1;
 	private static final int REQUEST_IMAGE_PICK = 2;
+
 	private Uri photoURI;
 	private TextView usernameText;
 	private TextView actionBtn;
 	private ImageButton cameraBtn;
 	private ImageView logoBtn;
 	private SharedPreferences userSessionPreferences, userPreferences;
+	private AlertDialog loginDialog;
 
 	@Nullable
 	@Override
@@ -87,34 +68,53 @@ public class HeaderFragment extends Fragment {
 		userPreferences = getActivity().getSharedPreferences("user", getActivity().MODE_PRIVATE);
 		userSessionPreferences = getActivity().getSharedPreferences("user_session", getActivity().MODE_PRIVATE);
 		String username = userSessionPreferences.getString("username", null);
-		if (username != null) {
-			usernameText.setText(username);
-			usernameText.setClickable(true);
-			usernameText.setOnClickListener(v -> {
-				Intent intent = new Intent(getActivity(), UpdateUserActivity.class);
-				startActivity(intent);
-			});
-			actionBtn.setText("Logout");
-			actionBtn.setVisibility(View.VISIBLE);
-			actionBtn.setOnClickListener(v -> logout());
-			cameraBtn.setOnClickListener(v -> showImageSourceDialog());
 
-		} else {
-			usernameText.setText("Guest");
-			actionBtn.setText("Login");
-			actionBtn.setVisibility(View.VISIBLE);
-			actionBtn.setOnClickListener(v -> {
-				Intent intent = new Intent(getActivity(), LoginActivity.class);
-				startActivity(intent);
-			});
-			cameraBtn.setOnClickListener(v -> showLoginDialog());
-		}
+		setupUserSpecificUI(username);
+
 		logoBtn.setClickable(true);
 		logoBtn.setOnClickListener(v -> {
 			Intent intent = new Intent(getActivity(), MainActivity.class);
 			startActivity(intent);
 		});
+
 		return view;
+	}
+
+	private void setupUserSpecificUI(String username) {
+		if (username != null) {
+			configureLoggedInUser(username);
+		} else {
+			configureGuestUser();
+		}
+	}
+
+	private void configureLoggedInUser(String username) {
+		usernameText.setText(username);
+		usernameText.setClickable(true);
+		usernameText.setOnClickListener(v -> {
+			Intent intent = new Intent(getActivity(), UpdateUserActivity.class);
+			startActivity(intent);
+			getActivity().finish();
+		});
+		actionBtn.setText("Logout");
+		actionBtn.setVisibility(View.VISIBLE);
+		actionBtn.setOnClickListener(v -> {
+			logout();
+		});
+		cameraBtn.setOnClickListener(v -> showImageSourceDialog());
+	}
+
+	private void configureGuestUser() {
+		usernameText.setText("Guest");
+		actionBtn.setText("Login");
+		actionBtn.setVisibility(View.VISIBLE);
+		actionBtn.setOnClickListener(v -> {
+			startActivity(new Intent(getActivity(), LoginActivity.class));
+			getActivity().finish();
+		});
+		cameraBtn.setOnClickListener(v -> {
+			showLoginDialog();
+		});
 	}
 
 	private void logout() {
@@ -126,6 +126,8 @@ public class HeaderFragment extends Fragment {
 		userEditor.clear();
 		userEditor.apply();
 
+		Toast.makeText(getActivity(), "Successfully logged out", Toast.LENGTH_SHORT).show();
+
 		Intent intent = new Intent(getActivity(), MainActivity.class);
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivity(intent);
@@ -133,57 +135,65 @@ public class HeaderFragment extends Fragment {
 	}
 
 	private void showLoginDialog() {
-		LayoutInflater inflater = getLayoutInflater();
-		View dialogView = inflater.inflate(R.layout.dialog_login, null);
+		if (loginDialog == null) {
+			loginDialog = createLoginDialog();
+		}
+		loginDialog.show();
+	}
+
+	private AlertDialog createLoginDialog() {
+		View dialogView = getLayoutInflater().inflate(R.layout.dialog_login, null);
 		Button positiveButton = dialogView.findViewById(R.id.positiveButton);
 		Button negativeButton = dialogView.findViewById(R.id.negativeButton);
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-		builder.setView(dialogView)
-				.setCancelable(true);
+		builder.setView(dialogView).setCancelable(true);
 		AlertDialog dialog = builder.create();
-		dialog.show();
 
-		positiveButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Intent intent = new Intent(getActivity(), LoginActivity.class);
-				startActivity(intent);
-				dialog.dismiss();
-			}
+		positiveButton.setOnClickListener(v -> {
+			startActivity(new Intent(getActivity(), LoginActivity.class));
+			dialog.dismiss();
+			getActivity().finish();
 		});
 
-		negativeButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Intent intent = new Intent(getActivity(), RegisterAccountActivity.class);
-				startActivity(intent);
-				dialog.dismiss();
-			}
+		negativeButton.setOnClickListener(v -> {
+			startActivity(new Intent(getActivity(), RegisterAccountActivity.class));
+			dialog.dismiss();
+			getActivity().finish();
 		});
+
+		return dialog;
 	}
 
 	private void showImageSourceDialog() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		builder.setTitle("Choose Image Source")
-				.setItems(new CharSequence[]{"Camera", "Gallery"}, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						switch (which) {
-							case 0:
-								if (ContextCompat.checkSelfPermission((getActivity()), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-									ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
-								} else {
-									dispatchTakePictureIntent();
-								}
-								break;
-							case 1:
-								dispatchPickPictureIntent();
-								break;
+				.setItems(new CharSequence[]{"Camera", "Gallery"}, (dialog, which) -> {
+					if (which == 0) {
+						if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+							requestCameraPermission();
+						} else {
+							dispatchTakePictureIntent();
 						}
+					} else {
+						dispatchPickPictureIntent();
 					}
 				});
 		builder.create().show();
+	}
+
+	private void requestCameraPermission() {
+		if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), Manifest.permission.CAMERA)) {
+			new AlertDialog.Builder(getActivity())
+					.setTitle("Camera Permission Needed")
+					.setMessage("This app requires camera access to take pictures.")
+					.setPositiveButton("OK", (dialog, which) ->
+							ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION))
+					.create()
+					.show();
+		} else {
+			ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
+		}
 	}
 
 	private void dispatchTakePictureIntent() {
@@ -193,11 +203,13 @@ public class HeaderFragment extends Fragment {
 			try {
 				photoFile = createImageFile();
 			} catch (IOException ex) {
-				Log.e(getActivity().toString(), "Error occurred while creating the File");
+				Log.e(TAG, "IOException occurred while creating the file", ex);
+			} catch (Exception ex) {
+				Log.e(TAG, "Unexpected error occurred while creating the file", ex);
 			}
 			if (photoFile != null) {
 				photoURI = FileProvider.getUriForFile(getActivity(), "com.example.lioneats.provider", photoFile);
-				Log.d("File URI", "Photo URI: " + photoURI.toString());
+				Log.d(TAG, "Photo URI: " + photoURI.toString());
 				takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
 				startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
 			}
@@ -225,7 +237,6 @@ public class HeaderFragment extends Fragment {
 			if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 				showImageSourceDialog();
 			} else {
-				// Permission denied
 				Toast.makeText(getActivity(), "Camera permission is required to take pictures", Toast.LENGTH_SHORT).show();
 			}
 		}
@@ -235,12 +246,12 @@ public class HeaderFragment extends Fragment {
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == getActivity().RESULT_OK) {
-			Log.d("ActivityResult", "Image capture successful. URI: " + photoURI.toString());
+			Log.d(TAG, "Image capture successful. URI: " + photoURI.toString());
 			navigateToImageResultActivity(photoURI);
 		} else if (requestCode == REQUEST_IMAGE_PICK && resultCode == getActivity().RESULT_OK) {
 			if (data != null) {
 				photoURI = data.getData();
-				Log.d("ActivityResult", "Image selected from gallery. URI: " + photoURI.toString());
+				Log.d(TAG, "Image selected from gallery. URI: " + photoURI.toString());
 				navigateToImageResultActivity(photoURI);
 			}
 		}
@@ -250,5 +261,6 @@ public class HeaderFragment extends Fragment {
 		Intent intent = new Intent(getActivity(), ImageResultActivity.class);
 		intent.putExtra("imageUri", imageUri.toString());
 		startActivity(intent);
+		getActivity().finish();
 	}
 }
