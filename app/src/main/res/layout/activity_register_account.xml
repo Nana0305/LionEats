@@ -279,9 +279,11 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Set Allergies"
-                android:clickable="true"
                 android:textSize="18sp"
-                android:textStyle="bold"/>
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:gravity="center"
+                android:background="@color/appOrange"/>
             <androidx.gridlayout.widget.GridLayout
                 android:id="@+id/allergyOptionsGrid"
                 android:layout_width="0dp"

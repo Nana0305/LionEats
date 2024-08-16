@@ -55,6 +55,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -75,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	private final List<String> dishNames = new ArrayList<>();
 	private final List<String> allergyNames = new ArrayList<>();
 	private final List<String> mrtNames = new ArrayList<>();
+	private List<String> locationMRTs;
 	private List<String> selectedDish;
 	private List<String> selectedLocation;
 	private List<String> selectedAllergies;
@@ -104,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		setupUI();
 		setupLocationServices();
 		loadListsFromPreferencesOrFetch();
-
+		locationMRTs = new ArrayList<>();
 		LinearLayout userHomeLayout = findViewById(R.id.userHomeLayout);
 		if (username != null) {
 			userHomeLayout.setVisibility(View.VISIBLE);
@@ -134,15 +138,12 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		loadAllergiesFromPreferences();
 		loadMRTsFromPreferences();
 
-		dishNames.add("");
 		for (Dish dish : dishList) {
 			dishNames.add(dish.getDishDetailName());
 		}
-		allergyNames.add("");
 		for (Allergy allergy : allergyList) {
 			allergyNames.add(allergy.getName());
 		}
-		mrtNames.add("");
 		for (MRTDTO mrt : mrtList) {
 			mrtNames.add(mrt.getName());
 		}
@@ -560,6 +561,11 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 
 	private void showMultiSelectionDialog(String title, List<String> items, List<String> selectedItems, Spinner spinner) {
 		boolean[] checkedItems = new boolean[items.size()];
+
+		for (int i = 0; i < items.size(); i++) {
+			checkedItems[i] = selectedItems.contains(items.get(i));
+		}
+
 		String[] itemsArray = items.toArray(new String[0]);
 
 		DialogInterface.OnMultiChoiceClickListener listener = (dialog, which, isChecked) -> {
@@ -645,14 +651,20 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	private SearchRequestDTO setupSearchRequest() {
 		SearchRequestDTO searchRequest = new SearchRequestDTO();
 
-		if (selectedDish == null || selectedDish.isEmpty()) {
-			if (user.getDishPreferences() != null) {
-				searchRequest.setDishes(user.getDishPreferences());
-			} else {
-				searchRequest.setDishes(new ArrayList<>());
+		if (isLocationPermissionGranted() && isCurrentLocationAvailable()) {
+			CountDownLatch latch = new CountDownLatch(1);
+
+			fetchMRTbyCurrentLocation(currentLocation, locationMRTs -> {
+				this.locationMRTs = locationMRTs;
+				latch.countDown();
+			});
+
+			try {
+				latch.await();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				handleFetchError("Failed to fetch MRT stations in time.");
 			}
-		} else {
-			searchRequest.setDishes(selectedDish);
 		}
 
 		if (selectedAllergies == null || selectedAllergies.isEmpty()) {
@@ -665,11 +677,20 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 			searchRequest.setAllergies(selectedAllergies);
 		}
 
+		if (selectedDish == null || selectedDish.isEmpty()) {
+			if (user.getDishPreferences() != null) {
+				searchRequest.setDishes(user.getDishPreferences());
+			} else {
+				searchRequest.setDishes(new ArrayList<>());
+			}
+		} else {
+			searchRequest.setDishes(selectedDish);
+		}
+
 		if (selectedLocation == null || selectedLocation.isEmpty()) {
 			if (isLocationPermissionGranted() && isCurrentLocationAvailable()) {
-				List<String> currentLocationMRTs = getMRTbyCurrentLocation();
-				if (currentLocationMRTs != null && !currentLocationMRTs.isEmpty()) {
-					searchRequest.setLocation(currentLocationMRTs);
+				if (locationMRTs != null && !locationMRTs.isEmpty()) {
+					searchRequest.setLocation(locationMRTs);
 				} else {
 					searchRequest.setLocation(new ArrayList<>());
 				}
@@ -694,33 +715,29 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	}
 
 
-	private List<String> getMRTbyCurrentLocation() {
-		List<String> locationMRTs = new ArrayList<>();
+	private void fetchMRTbyCurrentLocation(UserLocationDTO location, Consumer<List<String>> callback) {
 		ApiService apiService = RetrofitClient.getApiServiceWithoutToken();
+		Call<List<MRTDTO>> call = apiService.getNearestMRTs(location);
 
-		String requestBody = gson.toJson(currentLocation);
-		Log.d(TAG, "Request Body: " + requestBody);
-
-		Call<List<MRTDTO>> call = apiService.getNearestMRTs(currentLocation);
 		call.enqueue(new Callback<List<MRTDTO>>() {
 			@Override
 			public void onResponse(Call<List<MRTDTO>> call, Response<List<MRTDTO>> response) {
 				if (response.isSuccessful() && response.body() != null) {
-					List<MRTDTO> nearestMRTs = response.body();
-					Log.d(TAG, "Get MRT by location Response Body: " + gson.toJson(response.body()));
-					for (MRTDTO mrt : nearestMRTs) {
-						locationMRTs.add(mrt.getName());
-					}
+					List<String> locationMRTs = response.body().stream()
+							.map(MRTDTO::getName)
+							.collect(Collectors.toList());
+					callback.accept(locationMRTs);
 				} else {
-					handleFetchError("No MRT for current location: " + response.message());
+					handleFetchError("Failed to get MRTs: " + response.message());
+					callback.accept(Collections.emptyList());
 				}
 			}
 
 			@Override
 			public void onFailure(Call<List<MRTDTO>> call, Throwable t) {
-				handleFetchError("Network error while getting MRT by current location", t);
+				handleFetchError("Network Error: " + t.getMessage());
+				callback.accept(Collections.emptyList());
 			}
 		});
-		return locationMRTs;
 	}
 }

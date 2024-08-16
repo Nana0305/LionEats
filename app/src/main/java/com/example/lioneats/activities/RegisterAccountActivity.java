@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -71,32 +72,36 @@ public class RegisterAccountActivity extends AppCompatActivity {
 		spicyOptions = findViewById(R.id.spicyOptions);
 		dishContainer = findViewById(R.id.dishContainer);
 		allergyOptionsGrid = findViewById(R.id.allergyOptionsGrid);
+		allergySection = findViewById(R.id.allergySection);
+		dishPreferencesSection = findViewById(R.id.dishPreferencesSection);
+		setAllergiesBtn = findViewById(R.id.setAllergiesBtn);
 
 		loadDishesFromPreferences();
 		loadAllergiesFromPreferences();
+
+		dishPreferencesSection.setEnabled(false);
+		dishPreferencesSection.setBackground(ContextCompat.getDrawable(this, R.drawable.disabled_background));
+		disableAllChildViews(dishContainer);
+
+		setAllergiesBtn.setOnClickListener(v -> {
+			for (CheckBox checkBox : allergyCheckboxes) {
+				checkBox.setEnabled(false);
+			}
+			allergySection.setBackground(ContextCompat.getDrawable(this, R.drawable.disabled_background));
+
+			dishPreferencesSection.setEnabled(true);
+			dishPreferencesSection.setBackground(null);
+			fetchSafeDishes();
+		});
 
 		Button homeBtn = findViewById(R.id.homeBtn);
 		homeBtn.setOnClickListener(v -> {
 			Intent intent = new Intent(RegisterAccountActivity.this, MainActivity.class);
 			startActivity(intent);
 		});
+
 		Button registerBtn = findViewById(R.id.registerBtn);
 		registerBtn.setOnClickListener(v -> registerUser());
-
-		allergySection = findViewById(R.id.allergySection);
-		dishPreferencesSection = findViewById(R.id.dishPreferencesSection);
-		dishPreferencesSection.setEnabled(false);
-		dishPreferencesSection.setBackground(ContextCompat.getDrawable(this, R.drawable.disabled_background));
-
-		setAllergiesBtn = findViewById(R.id.setAllergiesBtn);
-		setAllergiesBtn.setOnClickListener(v -> {
-			for (CheckBox checkBox : allergyCheckboxes) {
-				checkBox.setEnabled(false);
-			}
-			allergySection.setBackground(ContextCompat.getDrawable(this, R.drawable.disabled_background));
-			fetchSafeDishes();
-			dishPreferencesSection.setEnabled(true);
-		});
 	}
 
 	private void loadAllergiesFromPreferences() {
@@ -131,8 +136,11 @@ public class RegisterAccountActivity extends AppCompatActivity {
 	}
 
 	private void fetchSafeDishes() {
-		List<String> selectedAllergies;
-		selectedAllergies = getSelectedAllergies();
+		List<String> selectedAllergies = getSelectedAllergies();
+
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		String requestBody = gson.toJson(selectedAllergies);
+		Log.d(TAG, "Request Body: " + requestBody);
 
 		ApiService apiService = RetrofitClient.getApiServiceWithoutToken();
 		Call<List<Dish>> call = apiService.getSafeDishes(selectedAllergies);
@@ -141,9 +149,19 @@ public class RegisterAccountActivity extends AppCompatActivity {
 			@Override
 			public void onResponse(Call<List<Dish>> call, Response<List<Dish>> response) {
 				if (response.isSuccessful() && response.body() != null) {
+					String responseBody = gson.toJson(response.body());
+					Log.d(TAG, "Response Body: " + responseBody);
+
 					List<Dish> safeDishes = response.body();
 					updateDishSelectionUI(safeDishes);
 				} else {
+					try {
+						if (response.errorBody() != null) {
+							Log.e(TAG, "Response Error Body: " + response.errorBody().string());
+						}
+					} catch (IOException e) {
+						Log.e(TAG, "Error reading error body", e);
+					}
 					Toast.makeText(RegisterAccountActivity.this, "Failed to fetch safe dishes", Toast.LENGTH_SHORT).show();
 				}
 			}
@@ -156,9 +174,8 @@ public class RegisterAccountActivity extends AppCompatActivity {
 		});
 	}
 
+
 	private void updateDishSelectionUI(List<Dish> safeDishes) {
-		dishPreferencesSection.setEnabled(true);
-		dishPreferencesSection.setBackground(ContextCompat.getDrawable(this, R.drawable.selector_background));
 		dishContainer.removeAllViews();
 
 		for (Dish dish : dishList) {
@@ -178,13 +195,27 @@ public class RegisterAccountActivity extends AppCompatActivity {
 				dishView.setOnClickListener(v -> toggleDishSelection(dishView, dish));
 				dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selector_background));
 				dishView.setClickable(true);
+				dishView.setEnabled(true);
 			} else {
 				dishView.setOnClickListener(null);
 				dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.disabled_background));
 				dishView.setClickable(false);
+				dishView.setEnabled(false);
 			}
 			dishContainer.addView(dishView);
 		}
+	}
+
+	private void toggleDishSelection(View dishView, Dish dish) {
+		if (dishSelections.contains(dish)) {
+			dishSelections.remove(dish);
+			dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selector_background));
+		} else {
+			dishSelections.add(dish);
+			dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selected_background));
+		}
+
+		Log.d(TAG, "Selected Dishes: " + dishSelections.toString());
 	}
 
 	private void loadDishesFromPreferences() {
@@ -221,19 +252,18 @@ public class RegisterAccountActivity extends AppCompatActivity {
 		}
 	}
 
-	private void toggleDishSelection(View dishView, Dish dish) {
-		if (dishSelections.contains(dish)) {
-			dishSelections.remove(dish);
-			dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selector_background));
-		} else {
-			dishSelections.add(dish);
-			dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selected_background));
+	private List<String> getSelectedAllergies() {
+		List<String> selectedAllergies = new ArrayList<>();
+		for (CheckBox checkBox : allergyCheckboxes) {
+			if (checkBox.isChecked()) {
+				String allergyName = checkBox.getText().toString();
+				selectedAllergies.add(allergyName);
+			}
 		}
-
-		Log.d(TAG, "Selected Dishes: " + dishSelections.toString());
+		return selectedAllergies;
 	}
 
-	public void registerUser() {
+	private void registerUser() {
 		if (!validateInputs()) {
 			Toast.makeText(this, "Invalid inputs", Toast.LENGTH_SHORT).show();
 			return;
@@ -252,15 +282,24 @@ public class RegisterAccountActivity extends AppCompatActivity {
 			@Override
 			public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
 				if (response.isSuccessful()) {
-					Log.d(TAG, "Registration Successful: " + response.body().toString());
-					registerSuccessDialog();
+					try {
+						String responseBody = response.body().string();
+						Log.d(TAG, "Registration Successful: " + responseBody);
+						Toast.makeText(RegisterAccountActivity.this, "Registration Successful: " + responseBody, Toast.LENGTH_LONG).show();
+						registerSuccessDialog();
+					} catch (IOException e) {
+						Log.e(TAG, "Error reading response", e);
+						Toast.makeText(RegisterAccountActivity.this, "Error reading response", Toast.LENGTH_SHORT).show();
+					}
 				} else {
 					try {
-						Log.e(TAG, "Registration Failed: " + response.errorBody().string());
+						String errorBody = response.errorBody().string();
+						Log.e(TAG, "Registration Failed: " + errorBody);
+						Toast.makeText(RegisterAccountActivity.this, "Registration Failed: " + errorBody, Toast.LENGTH_LONG).show();
 					} catch (IOException e) {
 						Log.e(TAG, "Error parsing error response", e);
+						Toast.makeText(RegisterAccountActivity.this, "Error parsing error response", Toast.LENGTH_SHORT).show();
 					}
-					Toast.makeText(RegisterAccountActivity.this, "Registration Failed!", Toast.LENGTH_SHORT).show();
 				}
 			}
 
@@ -403,17 +442,6 @@ public class RegisterAccountActivity extends AppCompatActivity {
 		return selectedId == R.id.spicyOption1;
 	}
 
-	private List<String> getSelectedAllergies() {
-		List<String> selectedAllergies = new ArrayList<>();
-		for (CheckBox checkBox : allergyCheckboxes) {
-			if (checkBox.isChecked()) {
-				String allergyName = checkBox.getText().toString();
-				selectedAllergies.add(allergyName);
-			}
-		}
-		return selectedAllergies;
-	}
-
 	private List<String> getSelectedDishes() {
 		List<String> selectedDishes = new ArrayList<>();
 		for (Dish dish : dishSelections) {
@@ -447,5 +475,13 @@ public class RegisterAccountActivity extends AppCompatActivity {
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivity(intent);
 		finish();
+	}
+
+	private void disableAllChildViews(ViewGroup parent) {
+		for (int i = 0; i < parent.getChildCount(); i++) {
+			View child = parent.getChildAt(i);
+			child.setEnabled(false);
+			child.setBackground(ContextCompat.getDrawable(this, R.drawable.disabled_background));
+		}
 	}
 }
