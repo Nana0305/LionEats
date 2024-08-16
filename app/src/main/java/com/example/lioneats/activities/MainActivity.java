@@ -111,17 +111,34 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		locationMRTs = new ArrayList<>();
 		LinearLayout userHomeLayout = findViewById(R.id.userHomeLayout);
 		if (username != null) {
-			userHomeLayout.setVisibility(View.VISIBLE);
-			setupSpinners();
-			user = new UserDTO();
-			String userJson = userPreferences.getString("user", null);
-			if (userJson != null) {
-				user = new Gson().fromJson(userJson, UserDTO.class);
-			}
-			jwtToken = userSessionPreferences.getString("jwt", "");
-			filterAndDisplayShops();
+			handleUserLogin();
 		} else {
 			handleShopFetchingLogic();
+		}
+	}
+
+	private void handleUserLogin() {
+		LinearLayout userHomeLayout = findViewById(R.id.userHomeLayout);
+		userHomeLayout.setVisibility(View.VISIBLE);
+		setupSpinners();
+		user = new UserDTO();
+		String userJson = userPreferences.getString("user", null);
+		if (userJson != null) {
+			user = new Gson().fromJson(userJson, UserDTO.class);
+		}
+		jwtToken = userSessionPreferences.getString("jwt", "");
+		filterAndDisplayShops();
+	}
+
+	private void handleShopFetchingLogic() {
+		if (isLocationPermissionGranted()) {
+			if (isCurrentLocationAvailable()) {
+				fetchShopsByLocation(currentLocation);
+			} else {
+				getLastLocation();
+			}
+		} else {
+			askPermission();
 		}
 	}
 
@@ -298,22 +315,6 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		};
 	}
 
-	private void handleShopFetchingLogic() {
-		if (username == null) {
-			if (isLocationPermissionGranted()) {
-				if (isCurrentLocationAvailable()) {
-					fetchShopsByLocation(currentLocation);
-				} else {
-					fetchShopsByDefaultLocation();
-				}
-			} else {
-				fetchShopsByDefaultLocation();
-			}
-		} else {
-			filterAndDisplayShops();
-		}
-	}
-
 	private boolean isLocationPermissionGranted() {
 		return ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
 	}
@@ -331,7 +332,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 					.addOnSuccessListener(location -> {
 						if (location != null) {
 							currentLocation = new UserLocationDTO(location.getLatitude(), location.getLongitude());
-							handleShopFetchingLogic(); // Ensure this is called after location is set
+							fetchShopsByLocation(currentLocation);
 						} else {
 							requestNewLocationData();
 						}
@@ -339,7 +340,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 					.addOnFailureListener(e -> {
 						Log.e(TAG, "Error trying to get location", e);
 						Toast.makeText(MainActivity.this, "Error trying to get location", Toast.LENGTH_SHORT).show();
-						fetchShopsByDefaultLocation(); // Handle fallback here if necessary
+						fetchShopsByDefaultLocation();
 					});
 		} else {
 			askPermission();
@@ -347,11 +348,11 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	}
 
 	private void requestNewLocationData() {
-		LocationRequest locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000)
-				.setMinUpdateIntervalMillis(5000)
-				.build();
+		if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+			LocationRequest locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000)
+					.setMinUpdateIntervalMillis(5000)
+					.build();
 
-		if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 			fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
 		} else {
 			askPermission();

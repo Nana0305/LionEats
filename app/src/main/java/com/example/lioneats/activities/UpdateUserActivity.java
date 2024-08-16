@@ -124,6 +124,7 @@ public class UpdateUserActivity extends AppCompatActivity {
 		editBtn.setOnClickListener(v -> {
 			setFieldsEditable(true);
 			setAllergiesBtn.setEnabled(true);
+			setAllergiesBtn.setBackground(ContextCompat.getDrawable(this, R.drawable.enabled_background));
 			dishPreferencesSection.setEnabled(false);
 			dishPreferencesSection.setBackground(ContextCompat.getDrawable(this, R.drawable.disabled_background));
 			editBtn.setVisibility(View.GONE);
@@ -341,7 +342,7 @@ public class UpdateUserActivity extends AppCompatActivity {
 
 		if (enabled) {
 			setAllergiesBtn.setEnabled(true);
-			setAllergiesBtn.setBackground(null);
+			setAllergiesBtn.setBackground(ContextCompat.getDrawable(this, R.drawable.enabled_background));
 		} else {
 			setAllergiesBtn.setEnabled(false);
 			setAllergiesBtn.setBackground(ContextCompat.getDrawable(this, R.drawable.disabled_background));

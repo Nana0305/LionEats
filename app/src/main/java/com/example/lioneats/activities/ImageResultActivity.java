@@ -52,7 +52,7 @@ public class ImageResultActivity extends AppCompatActivity {
 	private static final String TAG = "ImageResultActivity";
 
 	private ML_feedback feedback;
-	private TextView resultTextView, viewDishBtn, viewShopsBtn;
+	private TextView resultTextView, viewDishBtn;
 	private ProgressBar progressBar;
 	private EditText remarksEditText;
 	private String selectedDishName;
@@ -90,7 +90,6 @@ public class ImageResultActivity extends AppCompatActivity {
 		progressBar.setVisibility(View.VISIBLE);
 		remarksEditText = findViewById(R.id.remarks);
 		viewDishBtn = findViewById(R.id.viewDishBtn);
-		viewShopsBtn = findViewById(R.id.viewShopsBtn);
 	}
 
 	private void setupHeaderFragment() {
