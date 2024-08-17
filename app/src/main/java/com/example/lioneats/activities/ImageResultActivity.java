@@ -190,6 +190,7 @@ public class ImageResultActivity extends AppCompatActivity {
 				Toast.makeText(ImageResultActivity.this, "Upload failed: " + response.message(), Toast.LENGTH_SHORT).show();
 			}
 		}
+
 		@Override
 		public void onFailure(Call<ResponseBody> call, Throwable t) {
 			progressBar.setVisibility(View.GONE);
@@ -283,6 +284,7 @@ public class ImageResultActivity extends AppCompatActivity {
 			if (response.isSuccessful()) {
 				Log.d(TAG, "Feedback submitted successfully");
 				submitSuccessDialog();
+				finish();
 			} else {
 				Log.e(TAG, "Feedback submission failed: " + response.message());
 				Toast.makeText(ImageResultActivity.this, "Feedback submission failed", Toast.LENGTH_SHORT).show();
@@ -297,22 +299,26 @@ public class ImageResultActivity extends AppCompatActivity {
 	}
 
 	private void submitSuccessDialog() {
-		LayoutInflater inflater = getLayoutInflater();
-		View dialogView = inflater.inflate(R.layout.dialog_custom, null);
-		TextView dialogMessage = dialogView.findViewById(R.id.dialogMessage);
-		dialogMessage.setText("Thank you for your feedback!");
+		if (!isFinishing() && !isDestroyed()) {
+			LayoutInflater inflater = getLayoutInflater();
+			View dialogView = inflater.inflate(R.layout.dialog_custom, null);
+			TextView dialogMessage = dialogView.findViewById(R.id.dialogMessage);
+			dialogMessage.setText("Thank you for your feedback!");
 
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setView(dialogView);
-		builder.setCancelable(false);
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setView(dialogView);
+			builder.setCancelable(false);
 
-		AlertDialog dialog = builder.create();
-		dialog.show();
+			AlertDialog dialog = builder.create();
+			dialog.show();
 
-		new Handler().postDelayed(() -> {
-			dialog.dismiss();
-			redirectToMainActivity();
-		}, 3000);
+			new Handler().postDelayed(() -> {
+				if (!isFinishing() && !isDestroyed()) {
+					dialog.dismiss();
+					redirectToMainActivity();
+				}
+			}, 3000);
+		}
 	}
 
 	private void redirectToMainActivity() {

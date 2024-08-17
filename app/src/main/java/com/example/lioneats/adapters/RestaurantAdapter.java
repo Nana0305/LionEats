@@ -38,10 +38,12 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 
 	@Override
 	public void onBindViewHolder(@NonNull RestaurantViewHolder holder, int position) {
-		if(restaurantList.isEmpty()) {
-			Log.e(TAG, "Attempted to bind view holder, but the restaurant list is empty.");
+		if (restaurantList == null || restaurantList.size() <= position) {
+			Log.e(TAG, "Attempted to bind view holder at position " + position + ", but the list size is " + (restaurantList == null ? "null" : restaurantList.size()));
 			return;
 		}
+
+		Log.d(TAG, "Binding view holder at position: " + position + " with list size: " + restaurantList.size());
 
 		ShopDTO restaurant = restaurantList.get(position);
 		holder.bind(restaurant);
@@ -67,7 +69,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 			holder.photoImageView.setImageResource(R.drawable.default_image);
 		}
 
-		if (position < restaurantList.size() - 1) {
+		if (restaurantList.size() > position + 1) {
 			String nextPhotoUrl = restaurantList.get(position + 1).getPhotos() != null ?
 					restaurantList.get(position + 1).getPhotos().get(0).getPhotoReference() : null;
 			if (nextPhotoUrl != null && !nextPhotoUrl.isEmpty()) {
@@ -104,7 +106,6 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 			if (username != null) {
 				itemView.setOnClickListener(v -> {
 					ShopDTO shop = (ShopDTO) itemView.getTag();
-
 					Intent intent = new Intent(itemView.getContext(), ShopDetailsActivity.class);
 					intent.putExtra("shop", shop);
 					itemView.getContext().startActivity(intent);
@@ -119,16 +120,11 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantAdapter.Re
 
 	private String getPriceLevel(int priceLevel) {
 		switch (priceLevel) {
-			case 1:
-				return "$";
-			case 2:
-				return "$$";
-			case 3:
-				return "$$$";
-			case 4:
-				return "$$$$";
-			default:
-				return "Unknown";
+			case 1: return "$";
+			case 2: return "$$";
+			case 3: return "$$$";
+			case 4: return "$$$$";
+			default: return "Unknown";
 		}
 	}
 }

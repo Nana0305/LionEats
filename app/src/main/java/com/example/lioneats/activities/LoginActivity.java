@@ -93,7 +93,6 @@ public class LoginActivity extends AppCompatActivity {
 					LoginResponseDTO loginResponse = response.body();
 					saveUserSession(loginResponse.getUserId(), loginResponse.getUsername(), password, loginResponse.getJwt());
 					fetchUserData(loginResponse.getUserId(), loginResponse.getJwt());
-					navigateToHome();
 				} else {
 					Toast.makeText(LoginActivity.this, "Login failed", Toast.LENGTH_SHORT).show();
 				}
@@ -114,7 +113,7 @@ public class LoginActivity extends AppCompatActivity {
 		sessionEditor.putString("username", username);
 		sessionEditor.putString("password", password);
 		sessionEditor.putString("jwt", jwt);
-		sessionEditor.apply();
+		sessionEditor.commit();
 	}
 
 	private void fetchUserData(long userId, String jwtToken) {
@@ -144,7 +143,8 @@ public class LoginActivity extends AppCompatActivity {
 		SharedPreferences userPreferences = getSharedPreferences("user", MODE_PRIVATE);
 		SharedPreferences.Editor editor = userPreferences.edit();
 		editor.putString("user", new Gson().toJson(user));
-		editor.apply();
+		editor.commit();
+		navigateToHome();
 	}
 
 	private void navigateToHome() {

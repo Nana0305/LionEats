@@ -16,6 +16,7 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -56,6 +57,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -95,11 +98,18 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	private RestaurantAdapter restaurantAdapter;
 	private final List<ShopDTO> restaurantList = new ArrayList<>();
 	private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	private TextView emptyView;
+	private RecyclerView recyclerView;
+	private ExecutorService executorService;
+	private Handler mainHandler;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+
+		executorService = Executors.newSingleThreadExecutor();
+		mainHandler = new Handler(Looper.getMainLooper());
 
 		initPreferences();
 		username = userSessionPreferences.getString("username", null);
@@ -109,7 +119,6 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		setupLocationServices();
 		loadListsFromPreferencesOrFetch();
 		locationMRTs = new ArrayList<>();
-		LinearLayout userHomeLayout = findViewById(R.id.userHomeLayout);
 		if (username != null) {
 			handleUserLogin();
 		} else {
@@ -120,7 +129,6 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	private void handleUserLogin() {
 		LinearLayout userHomeLayout = findViewById(R.id.userHomeLayout);
 		userHomeLayout.setVisibility(View.VISIBLE);
-		setupSpinners();
 		user = new UserDTO();
 		String userJson = userPreferences.getString("user", null);
 		if (userJson != null) {
@@ -128,6 +136,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		}
 		jwtToken = userSessionPreferences.getString("jwt", "");
 		filterAndDisplayShops();
+		setupSpinners();
 	}
 
 	private void handleShopFetchingLogic() {
@@ -283,13 +292,16 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		progressBar = findViewById(R.id.progressBar);
 		progressBar.setVisibility(View.VISIBLE);
 
+		emptyView = findViewById(R.id.empty_view);
+		emptyView.setVisibility(View.GONE);
+
 		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 		transaction.replace(R.id.headerFragmentContainer, new HeaderFragment());
 		transaction.commit();
 
 		viewPager = findViewById(R.id.viewPager);
 
-		RecyclerView recyclerView = findViewById(R.id.recyclerView);
+		recyclerView = findViewById(R.id.recyclerView);
 		recyclerView.setLayoutManager(new LinearLayoutManager(this));
 		restaurantAdapter = new RestaurantAdapter(restaurantList, username);
 		recyclerView.setAdapter(restaurantAdapter);
@@ -389,9 +401,9 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		call.enqueue(new Callback<List<ShopDTO>>() {
 			@Override
 			public void onResponse(Call<List<ShopDTO>> call, Response<List<ShopDTO>> response) {
-				if (response.isSuccessful() && response.body() != null) {
+				if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
 					List<ShopDTO> shops = response.body();
-					updateRestaurantList(shops);
+					processRestaurantListInBackground(shops);
 				} else {
 					String errorMsg = response.message() != null ? response.message() : "Unknown error";
 					Log.e(TAG, "Failed to fetch restaurants: " + errorMsg + " (Code: " + response.code() + ")");
@@ -415,9 +427,9 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		call.enqueue(new Callback<List<ShopDTO>>() {
 			@Override
 			public void onResponse(Call<List<ShopDTO>> call, Response<List<ShopDTO>> response) {
-				if (response.isSuccessful() && response.body() != null) {
+				if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
 					List<ShopDTO> shops = response.body();
-					updateRestaurantList(shops);
+					processRestaurantListInBackground(shops);
 				} else {
 					handleFetchError("No restaurants available for default location: " + response.message());
 				}
@@ -430,27 +442,32 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		});
 	}
 
+	private void processRestaurantListInBackground(List<ShopDTO> newShops) {
+		executorService.execute(() -> {
+			List<ShopDTO> processedShops = processShops(newShops);
+			mainHandler.post(() -> updateRestaurantList(processedShops));
+		});
+	}
 
-	private void updateRestaurantList(List<ShopDTO> shops) {
-		restaurantList.clear();
-		if (shops.size() > 50) {
-			restaurantList.addAll(shops.subList(0, 50));
-		} else {
-			restaurantList.addAll(shops);
+	private List<ShopDTO> processShops(List<ShopDTO> shops) {
+		List<ShopDTO> processedShops = new ArrayList<>();
+		for (ShopDTO shop : shops) {
+			if (shop.getRating() > 4.0) {
+				processedShops.add(shop);
+			}
 		}
-		restaurantAdapter.notifyDataSetChanged();
-		progressBar.setVisibility(View.GONE);
+		return processedShops;
 	}
 
 	private void handleFetchError(String message) {
 		progressBar.setVisibility(View.GONE);
-		Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+		emptyView.setVisibility(View.VISIBLE);
 		Log.e(TAG, message);
 	}
 
 	private void handleFetchError(String message, Throwable t) {
 		progressBar.setVisibility(View.GONE);
-		Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+		emptyView.setVisibility(View.VISIBLE);
 		Log.e(TAG, message, t);
 	}
 
@@ -463,7 +480,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+		if (isLocationPermissionGranted()) {
 			getLastLocation();
 		} else {
 			fetchShopsByDefaultLocation();
@@ -519,10 +536,16 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		List<String> budgetOptions = new ArrayList<>();
 		budgetOptions.add("");
 		budgetOptions.addAll(Arrays.asList(getResources().getStringArray(R.array.spinnerBudget_items)));
+
 		ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
 				android.R.layout.simple_spinner_item, budgetOptions);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		budgetSpinner.setAdapter(adapter);
+
+		if (user != null && user.getPreferredBudget() != null) {
+			int position = adapter.getPosition(user.getPreferredBudget());
+			budgetSpinner.setSelection(position);
+		}
 
 		budgetSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 			@Override
@@ -592,6 +615,11 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	private void setupDishSpinner() {
 		Spinner dishSpinner = findViewById(R.id.spinnerDish);
 		selectedDish = new ArrayList<>();
+
+		if (user != null && user.getDishPreferences() != null) {
+			selectedDish.addAll(user.getDishPreferences());
+		}
+
 		dishSpinner.setOnTouchListener((v, event) -> {
 			if (event.getAction() == MotionEvent.ACTION_UP) {
 				v.performClick();
@@ -604,6 +632,11 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	private void setupAllergySpinner() {
 		Spinner allergySpinner = findViewById(R.id.spinnerAllergy);
 		selectedAllergies = new ArrayList<>();
+
+		if (user != null && user.getAllergies() != null) {
+			selectedAllergies.addAll(user.getAllergies());
+		}
+
 		allergySpinner.setOnTouchListener((v, event) -> {
 			if (event.getAction() == MotionEvent.ACTION_UP) {
 				v.performClick();
@@ -616,6 +649,27 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	private void setupLocationSpinner() {
 		Spinner locationSpinner = findViewById(R.id.spinnerLocation);
 		selectedLocation = new ArrayList<>();
+
+		if (isLocationPermissionGranted() && isCurrentLocationAvailable()) {
+			CountDownLatch latch = new CountDownLatch(1);
+
+			fetchMRTbyCurrentLocation(currentLocation, locationMRTs -> {
+				this.locationMRTs = locationMRTs;
+				latch.countDown();
+			});
+
+			try {
+				latch.await();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				handleFetchError("Failed to fetch MRT stations in time.");
+			}
+		}
+
+		if (locationMRTs != null && !locationMRTs.isEmpty()) {
+			selectedLocation.addAll(locationMRTs);
+		}
+
 		locationSpinner.setOnTouchListener((v, event) -> {
 			if (event.getAction() == MotionEvent.ACTION_UP) {
 				v.performClick();
@@ -626,26 +680,47 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	}
 
 	private void filterAndDisplayShops() {
-		SearchRequestDTO searchRequest = setupSearchRequest();
-		Log.d(TAG, "API Request: Filtering Shops: " + gson.toJson(searchRequest));
+		executorService.execute(() -> {
+			SearchRequestDTO searchRequest = setupSearchRequest();
+			Log.d(TAG, "API Request: Filtering Shops: " + gson.toJson(searchRequest));
 
-		ApiService apiService = RetrofitClient.getApiService(jwtToken);
-		Call<List<ShopDTO>> call = apiService.filterShops(searchRequest);
-		call.enqueue(new Callback<List<ShopDTO>>() {
-			@Override
-			public void onResponse(Call<List<ShopDTO>> call, Response<List<ShopDTO>> response) {
-				if (response.isSuccessful() && response.body() != null) {
-					List<ShopDTO> filteredShops = response.body();
-					updateRestaurantList(filteredShops);
-				} else {
-					handleFetchError("No restaurants available for with the selected filters: " + response.message());
+			ApiService apiService = RetrofitClient.getApiService(jwtToken);
+			Call<List<ShopDTO>> call = apiService.filterShops(searchRequest);
+
+			call.enqueue(new Callback<List<ShopDTO>>() {
+				@Override
+				public void onResponse(Call<List<ShopDTO>> call, Response<List<ShopDTO>> response) {
+					if (response.isSuccessful() && response.body() != null) {
+						List<ShopDTO> filteredShops = response.body();
+						mainHandler.post(() -> updateRestaurantList(filteredShops));
+					} else {
+						mainHandler.post(() -> handleFetchError("No restaurants available for the selected filters: " + response.message()));
+					}
 				}
+
+				@Override
+				public void onFailure(Call<List<ShopDTO>> call, Throwable t) {
+					mainHandler.post(() -> handleFetchError("Network error while filtering restaurants", t));
+				}
+			});
+		});
+	}
+
+	private void updateRestaurantList(List<ShopDTO> processedShops) {
+		mainHandler.post(() -> {
+			restaurantList.clear();
+			restaurantList.addAll(processedShops);
+			restaurantAdapter.notifyDataSetChanged();
+
+			if (restaurantList.isEmpty()) {
+				recyclerView.setVisibility(View.GONE);
+				emptyView.setVisibility(View.VISIBLE);
+			} else {
+				recyclerView.setVisibility(View.VISIBLE);
+				emptyView.setVisibility(View.GONE);
 			}
 
-			@Override
-			public void onFailure(Call<List<ShopDTO>> call, Throwable t) {
-				handleFetchError("Network error while filtering restaurants", t);
-			}
+			progressBar.setVisibility(View.GONE);
 		});
 	}
 
@@ -668,53 +743,14 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 			}
 		}
 
-		if (selectedAllergies == null || selectedAllergies.isEmpty()) {
-			if (user.getAllergies() != null) {
-				searchRequest.setAllergies(user.getAllergies());
-			} else {
-				searchRequest.setAllergies(new ArrayList<>());
-			}
-		} else {
-			searchRequest.setAllergies(selectedAllergies);
-		}
-
-		if (selectedDish == null || selectedDish.isEmpty()) {
-			if (user.getDishPreferences() != null) {
-				searchRequest.setDishes(user.getDishPreferences());
-			} else {
-				searchRequest.setDishes(new ArrayList<>());
-			}
-		} else {
-			searchRequest.setDishes(selectedDish);
-		}
-
-		if (selectedLocation == null || selectedLocation.isEmpty()) {
-			if (isLocationPermissionGranted() && isCurrentLocationAvailable()) {
-				if (locationMRTs != null && !locationMRTs.isEmpty()) {
-					searchRequest.setLocation(locationMRTs);
-				} else {
-					searchRequest.setLocation(new ArrayList<>());
-				}
-			} else {
-				searchRequest.setLocation(new ArrayList<>());
-			}
-		} else {
-			searchRequest.setLocation(selectedLocation);
-		}
-
-		if (selectedBudget != null && !selectedBudget.isEmpty()) {
-			searchRequest.setBudget(selectedBudget);
-		} else if (user.getPreferredBudget() != null) {
-			searchRequest.setBudget(user.getPreferredBudget());
-		} else {
-			searchRequest.setBudget("");
-		}
-
+		searchRequest.setAllergies(selectedAllergies != null ? selectedAllergies : new ArrayList<>());
+		searchRequest.setDishes(selectedDish != null ? selectedDish : new ArrayList<>());
+		searchRequest.setLocation(selectedLocation != null && !selectedLocation.isEmpty() ? selectedLocation : locationMRTs != null ? locationMRTs : new ArrayList<>());
+		searchRequest.setBudget(selectedBudget != null ? selectedBudget : "");
 		searchRequest.setMinRating(selectedRating > 0 ? selectedRating : 0.0);
 
 		return searchRequest;
 	}
-
 
 	private void fetchMRTbyCurrentLocation(UserLocationDTO location, Consumer<List<String>> callback) {
 		ApiService apiService = RetrofitClient.getApiServiceWithoutToken();
@@ -742,3 +778,4 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		});
 	}
 }
+
