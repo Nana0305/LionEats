@@ -25,9 +25,9 @@ import androidx.gridlayout.widget.GridLayout;
 import com.bumptech.glide.Glide;
 import com.example.lioneats.R;
 import com.example.lioneats.api.ApiService;
-import com.example.lioneats.models.Allergy;
-import com.example.lioneats.models.Dish;
-import com.example.lioneats.models.UserDTO;
+import com.example.lioneats.dtos.AllergyDTO;
+import com.example.lioneats.dtos.DishDTO;
+import com.example.lioneats.dtos.UserDTO;
 import com.example.lioneats.api.RetrofitClient;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -36,7 +36,6 @@ import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import okhttp3.ResponseBody;
@@ -51,10 +50,10 @@ public class RegisterAccountActivity extends AppCompatActivity {
 	private LinearLayout dishPreferencesSection, allergySection;
 	private TextView setAllergiesBtn;
 	private GridLayout dishContainer, allergyOptionsGrid;
-	private List<Dish> dishList = new ArrayList<>();
-	private List<Allergy> allergyList = new ArrayList<>();
+	private List<DishDTO> dishList = new ArrayList<>();
+	private List<AllergyDTO> allergyList = new ArrayList<>();
 	private List<CheckBox> allergyCheckboxes = new ArrayList<>();
-	private List<Dish> dishSelections = new ArrayList<>();
+	private List<DishDTO> dishSelections = new ArrayList<>();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -109,7 +108,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
 		String allergyJson = allergyListPreferences.getString("allergies", null);
 
 		if (allergyJson != null) {
-			Type listType = new TypeToken<List<Allergy>>() {}.getType();
+			Type listType = new TypeToken<List<AllergyDTO>>() {}.getType();
 			allergyList = new Gson().fromJson(allergyJson, listType);
 			populateAllergyCheckBoxes();
 		} else {
@@ -120,7 +119,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
 	private void populateAllergyCheckBoxes() {
 		allergyOptionsGrid.removeAllViews();
 
-		for (Allergy allergy : allergyList) {
+		for (AllergyDTO allergy : allergyList) {
 			CheckBox checkBox = new CheckBox(this);
 			checkBox.setText(allergy.getName());
 			checkBox.setTextSize(15);
@@ -143,16 +142,16 @@ public class RegisterAccountActivity extends AppCompatActivity {
 		Log.d(TAG, "Request Body: " + requestBody);
 
 		ApiService apiService = RetrofitClient.getApiServiceWithoutToken();
-		Call<List<Dish>> call = apiService.getSafeDishes(selectedAllergies);
+		Call<List<DishDTO>> call = apiService.getSafeDishes(selectedAllergies);
 
-		call.enqueue(new Callback<List<Dish>>() {
+		call.enqueue(new Callback<List<DishDTO>>() {
 			@Override
-			public void onResponse(Call<List<Dish>> call, Response<List<Dish>> response) {
+			public void onResponse(Call<List<DishDTO>> call, Response<List<DishDTO>> response) {
 				if (response.isSuccessful() && response.body() != null) {
 					String responseBody = gson.toJson(response.body());
 					Log.d(TAG, "Response Body: " + responseBody);
 
-					List<Dish> safeDishes = response.body();
+					List<DishDTO> safeDishes = response.body();
 					updateDishSelectionUI(safeDishes);
 				} else {
 					try {
@@ -167,7 +166,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
 			}
 
 			@Override
-			public void onFailure(Call<List<Dish>> call, Throwable t) {
+			public void onFailure(Call<List<DishDTO>> call, Throwable t) {
 				Log.e(TAG, "Network Error: ", t);
 				Toast.makeText(RegisterAccountActivity.this, "Network Error!", Toast.LENGTH_SHORT).show();
 			}
@@ -175,10 +174,10 @@ public class RegisterAccountActivity extends AppCompatActivity {
 	}
 
 
-	private void updateDishSelectionUI(List<Dish> safeDishes) {
+	private void updateDishSelectionUI(List<DishDTO> safeDishes) {
 		dishContainer.removeAllViews();
 
-		for (Dish dish : dishList) {
+		for (DishDTO dish : dishList) {
 			View dishView = LayoutInflater.from(this).inflate(R.layout.item_dish, dishContainer, false);
 			ImageView dishImage = dishView.findViewById(R.id.dishImage);
 			TextView dishName = dishView.findViewById(R.id.dishName);
@@ -206,7 +205,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
 		}
 	}
 
-	private void toggleDishSelection(View dishView, Dish dish) {
+	private void toggleDishSelection(View dishView, DishDTO dish) {
 		if (dishSelections.contains(dish)) {
 			dishSelections.remove(dish);
 			dishView.setBackground(ContextCompat.getDrawable(this, R.drawable.selector_background));
@@ -223,7 +222,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
 		String dishJson = sharedPreferences.getString("dishes", null);
 
 		if (dishJson != null) {
-			Type listType = new TypeToken<List<Dish>>() {}.getType();
+			Type listType = new TypeToken<List<DishDTO>>() {}.getType();
 			dishList = new Gson().fromJson(dishJson, listType);
 			populateDishPreferences();
 		} else {
@@ -235,7 +234,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
 	private void populateDishPreferences() {
 		dishContainer.removeAllViews();
 
-		for (Dish dish : dishList) {
+		for (DishDTO dish : dishList) {
 			View dishView = LayoutInflater.from(this).inflate(R.layout.item_dish, dishContainer, false);
 			ImageView dishImage = dishView.findViewById(R.id.dishImage);
 			TextView dishName = dishView.findViewById(R.id.dishName);
@@ -444,7 +443,7 @@ public class RegisterAccountActivity extends AppCompatActivity {
 
 	private List<String> getSelectedDishes() {
 		List<String> selectedDishes = new ArrayList<>();
-		for (Dish dish : dishSelections) {
+		for (DishDTO dish : dishSelections) {
 			String dishName = dish.getDishDetailName();
 			selectedDishes.add(dishName);
 		}

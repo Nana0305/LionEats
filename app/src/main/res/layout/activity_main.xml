@@ -28,7 +28,7 @@
             android:orientation="vertical"
             android:baselineAligned="false">
 
-            <!-- First Row: Allergy, Budget, Rating Spinners, and Refresh Button -->
+            <!-- First Row: AllergyDTO, Budget, Rating Spinners, and Refresh Button -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -103,7 +103,7 @@
                     android:text="Go"/>
             </LinearLayout>
 
-            <!-- Second Row: Dish and Location Spinners -->
+            <!-- Second Row: DishDTO and Location Spinners -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

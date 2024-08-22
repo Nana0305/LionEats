@@ -1,26 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <import type="android.view.View"/>
+        <variable
+            name="viewModel"
+            type="com.example.lioneats.viewmodels.ImageResultViewModel" />
+    </data>
+<LinearLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:layout_margin="10dp"
-    tools:context=".activities.ImageResultActivity">
-
+    android:layout_margin="10dp">
     <FrameLayout
         android:id="@+id/headerFragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="75dp" />
-
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="match_parent"
         android:layout_height="300dp"
         android:layout_marginVertical="10dp"
         android:scaleType="centerCrop"
-        android:contentDescription="uploaded image"/>
+        android:contentDescription="uploaded image" />
 
     <TextView
         android:layout_width="match_parent"
@@ -33,7 +34,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:visibility="gone"/>
+        android:visibility="@{viewModel.isLoading ? View.VISIBLE : View.GONE}" />
 
     <TextView
         android:id="@+id/resultText"
@@ -41,7 +42,8 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:textSize="30sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:visibility="gone"/>
     <TextView
         android:id="@+id/viewDishBtn"
         android:layout_width="wrap_content"
@@ -72,7 +74,8 @@
         android:gravity="top"
         android:background="@drawable/edit_text_background"
         android:hint="Enter your remarks"
-        android:padding="10dp" />
+        android:padding="10dp"
+        android:text="@={viewModel.remarks}"/>
 
     <Button
         android:id="@+id/submitBtn"
@@ -81,6 +84,7 @@
         android:text="Submit Feedback"
         android:textSize="20sp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="20dp" />
-
+        android:layout_marginTop="20dp"
+        android:onClick="@{() -> viewModel.onSubmit()}"/>
 </LinearLayout>
+</layout>

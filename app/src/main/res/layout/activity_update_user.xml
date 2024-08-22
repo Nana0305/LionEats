@@ -295,7 +295,7 @@
             </androidx.gridlayout.widget.GridLayout>
         </LinearLayout>
 
-        <!-- Dish Preferences -->
+        <!-- DishDTO Preferences -->
         <LinearLayout
             android:id="@+id/dishPreferencesSection"
             android:layout_width="match_parent"

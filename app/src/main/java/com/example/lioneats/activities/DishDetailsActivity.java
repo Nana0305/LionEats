@@ -14,9 +14,9 @@ import com.bumptech.glide.Glide;
 import com.example.lioneats.R;
 import com.example.lioneats.api.ApiService;
 import com.example.lioneats.fragments.HeaderFragment;
-import com.example.lioneats.models.Allergy;
-import com.example.lioneats.models.Dish;
-import com.example.lioneats.models.DishDetail;
+import com.example.lioneats.dtos.AllergyDTO;
+import com.example.lioneats.dtos.DishDTO;
+import com.example.lioneats.dtos.DishDetailDTO;
 import com.example.lioneats.api.RetrofitClient;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -35,8 +35,8 @@ public class DishDetailsActivity extends AppCompatActivity {
 
 	private TextView dishNameText, dishAllergiesText, dishIngredientsText, dishHistoryText, dishDescriptionText;
 	private ImageView dishImage;
-	private List<Allergy> allergyList = new ArrayList<>();
-	private List<Dish> dishList = new ArrayList<>();
+	private List<AllergyDTO> allergyList = new ArrayList<>();
+	private List<DishDTO> dishList = new ArrayList<>();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +71,7 @@ public class DishDetailsActivity extends AppCompatActivity {
 		String allergyJson = allergyListPreferences.getString("allergies", null);
 
 		if (allergyJson != null) {
-			Type listType = new TypeToken<List<Allergy>>() {}.getType();
+			Type listType = new TypeToken<List<AllergyDTO>>() {}.getType();
 			allergyList = new Gson().fromJson(allergyJson, listType);
 		} else {
 			Toast.makeText(this, "No allergies found", Toast.LENGTH_SHORT).show();
@@ -83,7 +83,7 @@ public class DishDetailsActivity extends AppCompatActivity {
 		String dishJson = dishListPreferences.getString("dishes", null);
 
 		if (dishJson != null) {
-			Type listType = new TypeToken<List<Dish>>() {}.getType();
+			Type listType = new TypeToken<List<DishDTO>>() {}.getType();
 			dishList = new Gson().fromJson(dishJson, listType);
 		} else {
 			Toast.makeText(this, "No dishes found", Toast.LENGTH_SHORT).show();
@@ -101,18 +101,18 @@ public class DishDetailsActivity extends AppCompatActivity {
 
 	private void fetchDishData(int dishID) {
 		ApiService apiService = RetrofitClient.getApiServiceWithoutToken();
-		Call<DishDetail> call = apiService.getDishById(dishID);
+		Call<DishDetailDTO> call = apiService.getDishById(dishID);
 
-		call.enqueue(new Callback<DishDetail>() {
+		call.enqueue(new Callback<DishDetailDTO>() {
 			@Override
-			public void onResponse(Call<DishDetail> call, Response<DishDetail> response) {
+			public void onResponse(Call<DishDetailDTO> call, Response<DishDetailDTO> response) {
 				if (response.isSuccessful() && response.body() != null) {
 					Toast.makeText(DishDetailsActivity.this, "Data fetched", Toast.LENGTH_SHORT).show();
 					Gson gson = new GsonBuilder().setPrettyPrinting().create();
 					String jsonResponse = gson.toJson(response.body());
 					Log.d(TAG, "JSON Response: " + jsonResponse);
 
-					DishDetail dishDetail = response.body();
+					DishDetailDTO dishDetail = response.body();
 					updateUI(dishDetail);
 				} else {
 					Toast.makeText(DishDetailsActivity.this, "Failed to fetch data", Toast.LENGTH_SHORT).show();
@@ -120,14 +120,14 @@ public class DishDetailsActivity extends AppCompatActivity {
 			}
 
 			@Override
-			public void onFailure(Call<DishDetail> call, Throwable t) {
+			public void onFailure(Call<DishDetailDTO> call, Throwable t) {
 				Toast.makeText(DishDetailsActivity.this, "Network Error", Toast.LENGTH_SHORT).show();
 				Log.e(TAG, "Network Error: ", t);
 			}
 		});
 	}
 
-	private void updateUI(DishDetail dishDetail) {
+	private void updateUI(DishDetailDTO dishDetail) {
 		dishNameText.setText(dishDetail.getName());
 		dishIngredientsText.setText(dishDetail.getIngredients());
 		dishHistoryText.setText(dishDetail.getHistory());
@@ -135,13 +135,13 @@ public class DishDetailsActivity extends AppCompatActivity {
 
 		StringBuilder dishAllergies = new StringBuilder();
 
-		Log.d(TAG, "Dish Name: " + dishDetail.getName());
-		for (Dish dish : dishList) {
-			Log.d(TAG, "Dish Name: " + dish.getDishDetailName());
+		Log.d(TAG, "DishDTO Name: " + dishDetail.getName());
+		for (DishDTO dish : dishList) {
+			Log.d(TAG, "DishDTO Name: " + dish.getDishDetailName());
 			if (dish.getDishDetailName().trim().equalsIgnoreCase(dishDetail.getName().trim())) {
-				for (Allergy allergy : allergyList) {
+				for (AllergyDTO allergy : allergyList) {
 					Log.d(TAG, "Checking allergy: " + allergy.getName());
-					for (DishDetail allergyDish : allergy.getDishes()) {
+					for (DishDetailDTO allergyDish : allergy.getDishes()) {
 						if (allergyDish.getName().trim().equalsIgnoreCase(dishDetail.getName().trim())) {
 							Log.d(TAG, "Found allergy: " + allergy.getName());
 							dishAllergies.append(allergy.getName()).append(" allergy    ");

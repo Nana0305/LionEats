@@ -1,6 +1,6 @@
-package com.example.lioneats.models;
+package com.example.lioneats.dtos;
 
-public class DishDetail {
+public class DishDetailDTO {
 	private String name;
 	private Boolean isSpicy;
 	private String ingredients;

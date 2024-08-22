@@ -13,7 +13,6 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -29,6 +28,10 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    buildFeatures {
+        viewBinding = true
+        dataBinding = true
     }
 }
 
@@ -56,13 +59,19 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
 
     // Image Loading
-    implementation("com.squareup.picasso:picasso:2.71828")
-    implementation ("com.github.bumptech.glide:glide:4.12.0")
-    annotationProcessor ("com.github.bumptech.glide:compiler:4.12.0")
+    implementation ("com.github.bumptech.glide:glide:4.15.1")
+    annotationProcessor ("com.github.bumptech.glide:compiler:4.15.1")
 
     // Lombok
     implementation("org.projectlombok:lombok:1.18.28")
     annotationProcessor("org.projectlombok:lombok:1.18.28")
+
+    // ViewModel and LiveData
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.1")
+
+    // Data Binding
+    implementation("androidx.databinding:databinding-runtime:8.0.2")
 
     // Testing Libraries
     testImplementation("junit:junit:4.13.2")

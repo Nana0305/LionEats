@@ -1,11 +1,11 @@
-package com.example.lioneats.models;
+package com.example.lioneats.dtos;
 
 import java.util.List;
 
-public class Allergy {
+public class AllergyDTO {
 	private Long id;
 	private String name;
-	private List<DishDetail> dishes;
+	private List<DishDetailDTO> dishes;
 
 	public Long getId() {
 		return id;
@@ -23,11 +23,11 @@ public class Allergy {
 		this.name = name;
 	}
 
-	public List<DishDetail> getDishes() {
+	public List<DishDetailDTO> getDishes() {
 		return dishes;
 	}
 
-	public void setDishes(List<DishDetail> dishes) {
+	public void setDishes(List<DishDetailDTO> dishes) {
 		this.dishes = dishes;
 	}
 }

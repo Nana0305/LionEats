@@ -39,9 +39,9 @@ import com.example.lioneats.dtos.SearchRequestDTO;
 import com.example.lioneats.dtos.ShopDTO;
 import com.example.lioneats.dtos.UserLocationDTO;
 import com.example.lioneats.fragments.HeaderFragment;
-import com.example.lioneats.models.Allergy;
-import com.example.lioneats.models.Dish;
-import com.example.lioneats.models.UserDTO;
+import com.example.lioneats.dtos.AllergyDTO;
+import com.example.lioneats.dtos.DishDTO;
+import com.example.lioneats.dtos.UserDTO;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -75,8 +75,8 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	private Runnable runnable;
 	private int currentItem = 0;
 	private ViewPager2 viewPager;
-	private List<Dish> dishList = new ArrayList<>();
-	private List<Allergy> allergyList = new ArrayList<>();
+	private List<DishDTO> dishList = new ArrayList<>();
+	private List<AllergyDTO> allergyList = new ArrayList<>();
 	private List<MRTDTO> mrtList = new ArrayList<>();
 	private final List<String> dishNames = new ArrayList<>();
 	private final List<String> allergyNames = new ArrayList<>();
@@ -164,10 +164,10 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 		loadAllergiesFromPreferences();
 		loadMRTsFromPreferences();
 
-		for (Dish dish : dishList) {
+		for (DishDTO dish : dishList) {
 			dishNames.add(dish.getDishDetailName());
 		}
-		for (Allergy allergy : allergyList) {
+		for (AllergyDTO allergy : allergyList) {
 			allergyNames.add(allergy.getName());
 		}
 		for (MRTDTO mrt : mrtList) {
@@ -178,7 +178,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	private void loadDishesFromPreferences() {
 		String dishesJson = dishListPreferences.getString("dishes", null);
 		if (dishesJson != null) {
-			dishList = new Gson().fromJson(dishesJson, new TypeToken<List<Dish>>() {
+			dishList = new Gson().fromJson(dishesJson, new TypeToken<List<DishDTO>>() {
 			}.getType());
 			setupViewPager();
 		} else {
@@ -189,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	private void loadAllergiesFromPreferences() {
 		String allergiesJson = allergyListPreferences.getString("allergies", null);
 		if (allergiesJson != null) {
-			allergyList = new Gson().fromJson(allergiesJson, new TypeToken<List<Allergy>>() {
+			allergyList = new Gson().fromJson(allergiesJson, new TypeToken<List<AllergyDTO>>() {
 			}.getType());
 		} else {
 			fetchAndUpdateAllergies();
@@ -209,11 +209,11 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	private void fetchAndUpdateDishes() {
 		ApiService apiService = RetrofitClient.getApiServiceWithoutToken();
 
-		Call<List<Dish>> call = apiService.getAllDishes();
+		Call<List<DishDTO>> call = apiService.getAllDishes();
 
-		call.enqueue(new Callback<List<Dish>>() {
+		call.enqueue(new Callback<List<DishDTO>>() {
 			@Override
-			public void onResponse(Call<List<Dish>> call, Response<List<Dish>> response) {
+			public void onResponse(Call<List<DishDTO>> call, Response<List<DishDTO>> response) {
 				if (response.isSuccessful() && response.body() != null) {
 					Log.d(TAG, "Dishes Response Body: " + gson.toJson(response.body()));
 					dishList = response.body();
@@ -227,7 +227,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 			}
 
 			@Override
-			public void onFailure(Call<List<Dish>> call, Throwable t) {
+			public void onFailure(Call<List<DishDTO>> call, Throwable t) {
 				Toast.makeText(MainActivity.this, "Network Error", Toast.LENGTH_SHORT).show();
 				Log.e(TAG, "Network Error: ", t);
 			}
@@ -237,11 +237,11 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	private void fetchAndUpdateAllergies() {
 		ApiService apiService = RetrofitClient.getApiServiceWithoutToken();
 
-		Call<List<Allergy>> call = apiService.getAllergies();
+		Call<List<AllergyDTO>> call = apiService.getAllergies();
 
-		call.enqueue(new Callback<List<Allergy>>() {
+		call.enqueue(new Callback<List<AllergyDTO>>() {
 			@Override
-			public void onResponse(Call<List<Allergy>> call, Response<List<Allergy>> response) {
+			public void onResponse(Call<List<AllergyDTO>> call, Response<List<AllergyDTO>> response) {
 				if (response.isSuccessful() && response.body() != null) {
 					Log.d(TAG, "Allergies Response Body: " + gson.toJson(response.body()));
 					allergyList = response.body();
@@ -254,7 +254,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 			}
 
 			@Override
-			public void onFailure(Call<List<Allergy>> call, Throwable t) {
+			public void onFailure(Call<List<AllergyDTO>> call, Throwable t) {
 				Toast.makeText(MainActivity.this, "Network Error", Toast.LENGTH_SHORT).show();
 				Log.e(TAG, "Network Error: ", t);
 			}
@@ -507,7 +507,7 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 
 	@Override
 	public void onItemClick(int position) {
-		Dish selectedDish = dishList.get(position);
+		DishDTO selectedDish = dishList.get(position);
 		Intent intent = new Intent(MainActivity.this, DishDetailsActivity.class);
 		intent.putExtra("dishID", selectedDish.getId());
 		intent.putExtra("dishImageUrl", selectedDish.getImageUrl());

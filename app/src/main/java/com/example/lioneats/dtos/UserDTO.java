@@ -1,4 +1,4 @@
-package com.example.lioneats.models;
+package com.example.lioneats.dtos;
 
 import java.util.List;
 

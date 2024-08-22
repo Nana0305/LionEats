@@ -10,30 +10,28 @@ import android.view.View;
 import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
 import com.example.lioneats.R;
-
 import androidx.annotation.NonNull;
-
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.FileProvider;
+import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
-
+import androidx.lifecycle.ViewModelProvider;
 import com.example.lioneats.activities.ImageResultActivity;
 import com.example.lioneats.activities.LoginActivity;
 import com.example.lioneats.activities.MainActivity;
 import com.example.lioneats.activities.RegisterAccountActivity;
 import com.example.lioneats.activities.UpdateUserActivity;
+import com.example.lioneats.databinding.FragmentHeaderRowBinding;
+import com.example.lioneats.utils.ActivityUtils;
+import com.example.lioneats.viewmodels.HeaderViewModel;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,92 +45,54 @@ public class HeaderFragment extends Fragment {
 	private static final int REQUEST_IMAGE_CAPTURE = 1;
 	private static final int REQUEST_IMAGE_PICK = 2;
 
-	private Uri photoURI;
-	private TextView usernameText;
-	private TextView actionBtn;
-	private ImageButton cameraBtn;
-	private ImageView logoBtn;
-	private SharedPreferences userSessionPreferences, userPreferences;
+	private HeaderViewModel viewModel;
+	private FragmentHeaderRowBinding binding;
 	private AlertDialog loginDialog;
+	private Uri photoURI;
 
 	@Nullable
 	@Override
 	public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-		View view = inflater.inflate(R.layout.fragment_header_row, container, false);
+		binding = DataBindingUtil.inflate(inflater, R.layout.fragment_header_row, container, false);
+		viewModel = new ViewModelProvider(this).get(HeaderViewModel.class);
+		binding.setViewModel(viewModel);
+		binding.setLifecycleOwner(getViewLifecycleOwner());
 
-		usernameText = view.findViewById(R.id.usernameText);
-		actionBtn = view.findViewById(R.id.actionBtn);
-		cameraBtn = view.findViewById(R.id.cameraBtn);
-		logoBtn = view.findViewById(R.id.logoBtn);
-
-		userPreferences = getActivity().getSharedPreferences("user", getActivity().MODE_PRIVATE);
-		userSessionPreferences = getActivity().getSharedPreferences("user_session", getActivity().MODE_PRIVATE);
+		SharedPreferences userSessionPreferences = getActivity().getSharedPreferences("user_session", getActivity().MODE_PRIVATE);
 		String username = userSessionPreferences.getString("username", null);
 
-		setupUserSpecificUI(username);
+		viewModel.updateUserStatus(username);
 
-		logoBtn.setClickable(true);
-		logoBtn.setOnClickListener(v -> {
-			Intent intent = new Intent(getActivity(), MainActivity.class);
-			startActivity(intent);
-			getActivity().finish();
-		});
+		setupClickListeners();
 
-		return view;
+		return binding.getRoot();
 	}
 
-	private void setupUserSpecificUI(String username) {
-		if (username != null) {
-			configureLoggedInUser(username);
-		} else {
-			configureGuestUser();
-		}
-	}
+	private void setupClickListeners() {
+		binding.logoBtn.setOnClickListener(v -> ActivityUtils.redirectToActivity(getActivity(), MainActivity.class, true));
 
-	private void configureLoggedInUser(String username) {
-		usernameText.setText(username);
-		usernameText.setClickable(true);
-		usernameText.setOnClickListener(v -> {
-			Intent intent = new Intent(getActivity(), UpdateUserActivity.class);
-			startActivity(intent);
-			getActivity().finish();
+		binding.usernameText.setOnClickListener(v -> {
+			if (viewModel.isLoggedIn.getValue()) {
+				ActivityUtils.redirectToActivity(getActivity(), UpdateUserActivity.class, true);
+			}
 		});
-		actionBtn.setText("Logout");
-		actionBtn.setVisibility(View.VISIBLE);
-		actionBtn.setOnClickListener(v -> {
-			logout();
+
+
+		binding.actionBtn.setOnClickListener(v -> {
+			if (viewModel.isLoggedIn.getValue()) {
+				ActivityUtils.logout(getActivity(), () ->ActivityUtils.redirectToActivity(getActivity(), MainActivity.class, true));
+			} else {
+				ActivityUtils.redirectToActivity(getActivity(), LoginActivity.class, true);
+			}
 		});
-		cameraBtn.setOnClickListener(v -> showImageSourceDialog());
-	}
-
-	private void configureGuestUser() {
-		usernameText.setText("Guest");
-		actionBtn.setText("Login");
-		actionBtn.setVisibility(View.VISIBLE);
-		actionBtn.setOnClickListener(v -> {
-			startActivity(new Intent(getActivity(), LoginActivity.class));
-			getActivity().finish();
+		binding.cameraBtn.setOnClickListener(v -> {
+			if (viewModel.isLoggedIn.getValue()) {
+				showImageSourceDialog();
+			} else {
+				showLoginDialog();
+			}
 		});
-		cameraBtn.setOnClickListener(v -> {
-			showLoginDialog();
-		});
-	}
 
-	private void logout() {
-		SharedPreferences.Editor sessionEditor = userSessionPreferences.edit();
-		sessionEditor.clear();
-		sessionEditor.apply();
-
-		SharedPreferences.Editor userEditor = userPreferences.edit();
-		userEditor.clear();
-		userEditor.apply();
-
-		Toast.makeText(getActivity(), "Successfully logged out", Toast.LENGTH_SHORT).show();
-
-		Intent intent = new Intent(getActivity(), MainActivity.class);
-		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-		startActivity(intent);
-		getActivity().finish();
 	}
 
 	private void showLoginDialog() {
@@ -262,6 +222,7 @@ public class HeaderFragment extends Fragment {
 		Intent intent = new Intent(getActivity(), ImageResultActivity.class);
 		intent.putExtra("imageUri", imageUri.toString());
 		startActivity(intent);
-		getActivity().finish();
+		Log.d(TAG, "Start image result activity");
+		//getActivity().finish();
 	}
 }

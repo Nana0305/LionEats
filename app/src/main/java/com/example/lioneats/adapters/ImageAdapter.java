@@ -11,20 +11,20 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.lioneats.R;
-import com.example.lioneats.models.Dish;
+import com.example.lioneats.dtos.DishDTO;
 
 import java.util.List;
 
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHolder> {
 	private final Context context;
-	private final List<Dish> dishList;
+	private final List<DishDTO> dishList;
 	private final OnItemClickListener onItemClickListener;
 
 	public interface OnItemClickListener {
 		void onItemClick(int position);
 	}
 
-	public ImageAdapter(Context context, List<Dish> dishList, OnItemClickListener onItemClickListener) {
+	public ImageAdapter(Context context, List<DishDTO> dishList, OnItemClickListener onItemClickListener) {
 		this.context = context;
 		this.dishList = dishList != null ? dishList : List.of(); // Handle potential null list
 		this.onItemClickListener = onItemClickListener;
@@ -39,7 +39,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
 
 	@Override
 	public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
-		Dish dish = dishList.get(position);
+		DishDTO dish = dishList.get(position);
 		String imageUrl = dish.getImageUrl();
 
 		Glide.with(holder.imageView.getContext())

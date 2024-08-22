@@ -6,11 +6,11 @@ import com.example.lioneats.dtos.PasswordChangeDTO;
 import com.example.lioneats.dtos.SearchRequestDTO;
 import com.example.lioneats.dtos.ShopDTO;
 import com.example.lioneats.dtos.UserLocationDTO;
-import com.example.lioneats.models.Allergy;
-import com.example.lioneats.models.Dish;
-import com.example.lioneats.models.DishDetail;
-import com.example.lioneats.models.ML_feedback;
-import com.example.lioneats.models.UserDTO;
+import com.example.lioneats.dtos.AllergyDTO;
+import com.example.lioneats.dtos.DishDTO;
+import com.example.lioneats.dtos.DishDetailDTO;
+import com.example.lioneats.dtos.ML_feedbackDTO;
+import com.example.lioneats.dtos.UserDTO;
 
 import java.util.List;
 
@@ -42,16 +42,16 @@ public interface ApiService {
 	Call<ResponseBody> changePassword(@Path("id") Long id, @Body PasswordChangeDTO passwordChangeDTO);
 
 	@GET("api/dishes")
-	Call<List<Dish>> getAllDishes();
+	Call<List<DishDTO>> getAllDishes();
 
 	@GET("api/dishes/{id}")
-	Call<DishDetail> getDishById(@Path("id") int id);
+	Call<DishDetailDTO> getDishById(@Path("id") int id);
 
 	@POST("api/dishes/safeDishes")
-	Call<List<Dish>> getSafeDishes(@Body List<String> allergyNames);
+	Call<List<DishDTO>> getSafeDishes(@Body List<String> allergyNames);
 
 	@GET("api/allergies")
-	Call<List<Allergy>> getAllergies();
+	Call<List<AllergyDTO>> getAllergies();
 
 	@GET("/api/mrt/all")
 	Call<List<MRTDTO>> getMRTList();
@@ -61,7 +61,7 @@ public interface ApiService {
 	Call<ResponseBody> uploadImage(@Part MultipartBody.Part image);
 
 	@POST("api/feedback")
-	Call<ResponseBody> submitFeedback(@Body ML_feedback feedback);
+	Call<ResponseBody> submitFeedback(@Body ML_feedbackDTO feedback);
 
 	@POST("api/feed/default")
 	Call<List<ShopDTO>> getShopsByLocation(@Body UserLocationDTO locationDTO);

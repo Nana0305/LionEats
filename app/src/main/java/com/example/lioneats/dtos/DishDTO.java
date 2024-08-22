@@ -1,8 +1,8 @@
-package com.example.lioneats.models;
+package com.example.lioneats.dtos;
 
 import java.util.Objects;
 
-public class Dish {
+public class DishDTO {
 	private int id;
 	private String dishDetailName;
 	private String imageUrl;
@@ -10,7 +10,7 @@ public class Dish {
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
-		Dish dish = (Dish) o;
+		DishDTO dish = (DishDTO) o;
 		return id == dish.id;
 	}
 
@@ -45,7 +45,7 @@ public class Dish {
 
 	@Override
 	public String toString() {
-		return "Dish{" +
+		return "DishDTO{" +
 				"id=" + id +
 				", dish='" + dishDetailName + '\'' +
 				", imageUrl='" + imageUrl + '\'' +
