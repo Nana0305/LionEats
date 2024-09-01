@@ -707,9 +707,18 @@ public class MainActivity extends AppCompatActivity implements ImageAdapter.OnIt
 	}
 
 	private void updateRestaurantList(List<ShopDTO> processedShops) {
-		mainHandler.post(() -> {
+		if (processedShops == null) {
+			Log.e(TAG, "Processed shops list is null, cannot update the restaurant list.");
+			handleFetchError("Failed to load data."); // Handle the error appropriately
+			return;
+		}
+
+		synchronized (restaurantList) {
 			restaurantList.clear();
 			restaurantList.addAll(processedShops);
+		}
+
+		mainHandler.post(() -> {
 			restaurantAdapter.notifyDataSetChanged();
 
 			if (restaurantList.isEmpty()) {
